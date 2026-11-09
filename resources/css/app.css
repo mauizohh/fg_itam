@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root, [data-theme="crimson"] {
+    --theme-primary: #a92d31;
+    --theme-primary-dark: #8f2428;
+    --theme-primary-deep: #360a0c;
+    --theme-primary-soft: #e8cccc;
+    --theme-primary-line: #c54f53;
+    --theme-sidebar-bg: #8f2428;
+    --ink: #3b4048;
+    --muted: #69717d;
+    --line: #e3d0d0;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--ink);
+    background-color: #f9fafb;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, .font-heading {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Primary Button */
+.btn-primary {
+    background-color: var(--theme-primary);
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 8px;
+    padding: 9px 18px;
+    border: 1px solid var(--theme-primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--theme-primary-dark);
+    border-color: var(--theme-primary-dark);
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    color: var(--ink);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 8px;
+    padding: 9px 18px;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+/* Pill Badges */
+.pill {
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 10px;
+    border: 1px solid transparent;
+}
+
+.pill.critical {
+    background: rgba(239, 68, 68, 0.10);
+    color: #b91c1c;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.pill.high, .pill.waiting {
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+    border-color: rgba(245, 158, 11, 0.40);
+}
+
+.pill.normal, .pill.in-progress {
+    background: rgba(59, 130, 246, 0.10);
+    color: #1d4ed8;
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+.pill.low, .pill.new, .pill.active {
+    background: rgba(16, 185, 129, 0.10);
+    color: #047857;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+.pill.closed, .pill.resolved {
+    background: rgba(100, 116, 139, 0.10);
+    color: #334155;
+    border-color: rgba(100, 116, 139, 0.30);
+}
+
+/* Metric / Stat Card */
+.stat-card {
+    background: linear-gradient(135deg, #8f2428 0%, #5c1416 100%);
+    border-radius: 12px;
+    padding: 17px;
+    color: #ffffff;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.20), 0 8px 16px rgba(0, 0, 0, 0.10);
+}
+
+/* Table styling */
+.itam-table th {
+    background-color: #8f2428;
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 14px;
+    letter-spacing: 0.3px;
+    text-align: left;
+}
+
+.itam-table th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.itam-table th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.itam-table td {
+    background-color: #ffffff;
+    color: #3b4048;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px 14px;
+    border-bottom: 1px solid #eadada;
+}
+
+.itam-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Form inputs */
+.itam-input, .itam-select {
+    border: 1px solid #e3d0d0;
+    border-radius: 7px;
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 13px;
+    background: #ffffff;
+    color: #3b4048;
+    width: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.itam-input:focus, .itam-select:focus {
+    outline: none;
+    border-color: #a92d31;
+    box-shadow: 0 0 0 2px #e8cccc;
+}
