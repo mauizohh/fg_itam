@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'FG IT Asset Management' }} - FIRSTGRADE ITAM</title>
+    <title>{{ !empty($title) ? $title . ' - FG IT Asset Management' : 'FG IT Asset Management' }}</title>
+    <link rel="icon" href="{{ asset('images/fg_logo.png') }}" type="image/png">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,29 +29,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-[#a92d31] flex items-center justify-center text-white font-heading font-black text-xs shadow-md">
-                    FG
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-heading font-extrabold text-[#a92d31] text-base leading-tight tracking-tight">FIRSTGRADE</span>
-                    <span class="text-[10px] font-bold text-gray-500 tracking-wider">IT ASSET MANAGEMENT</span>
-                </div>
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition">
+                <img src="{{ asset('images/fg_logo.png') }}" alt="Logo" class="h-9 sm:h-10">
+                <h1 class="text-base sm:text-lg font-heading font-bold text-fg-red hidden sm:block truncate">FG IT ASSET MANAGEMENT</h1>
             </a>
             <div class="hidden lg:flex items-center text-xs text-gray-400 pl-4 border-l border-gray-200 ml-2">
                 <span class="text-gray-600 font-medium">{{ $breadcrumb ?? 'IT Asset Management' }}</span>
             </div>
-        </div>
-
-        <!-- Global Search Bar -->
-        <div class="flex-1 max-w-md mx-4 hidden md:block">
-            <form action="{{ route('assets.index') }}" method="GET" class="relative">
-                <input type="text" name="search" placeholder="Search asset, user or serial..."
-                    class="w-full h-10 pl-10 pr-4 text-xs rounded-full border border-[#e3d0d0] bg-gray-50/50 focus:bg-white focus:border-[#a92d31] focus:ring-2 focus:ring-[#e8cccc] outline-none transition text-[#3b4048]">
-                <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-            </form>
         </div>
 
         <!-- Right User Actions -->
