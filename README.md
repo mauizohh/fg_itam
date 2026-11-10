@@ -216,17 +216,4 @@ npm run build
 
 ---
 
-## 10. Credentials & Defaults
-
-- **Database Host**: `127.0.0.1:3306`
-- **Database Name**: `admidio`
-- **Database User**: `root`
-- **Database Password**: *(blank)*
-- **Default Super Admin**:
-  - Name: **Amir Admin**
-  - Email: `admin@fg.com.my`
-  - Role: **Super Administrator**
-
----
-
 *FG IT Asset Management System — Developed in accordance with the FG ITAM Technical Proposal & Theme Specifications.*
