@@ -39,37 +39,32 @@
     </div>
 
     <!-- Table: Supplier Directory -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Supplier Directory</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Supplier</th>
-                        <th>Category</th>
-                        <th>Contact</th>
-                        <th>Open POs</th>
-                        <th>YTD Spend</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($suppliers as $sup)
-                    <tr>
-                        <td class="font-bold text-gray-900">{{ $sup->name }}</td>
-                        <td>{{ $sup->category }}</td>
-                        <td class="text-xs text-gray-600 font-mono">{{ $sup->contact_email }}</td>
-                        <td class="font-bold font-heading text-gray-800">{{ $sup->open_pos_count }}</td>
-                        <td class="font-bold font-heading text-gray-800">RM {{ number_format($sup->ytd_spend) }}</td>
-                        <td><span class="pill low">Active</span></td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <x-table-section title="Supplier Directory">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Supplier</th>
+                    <th>Category</th>
+                    <th>Contact</th>
+                    <th>Open POs</th>
+                    <th>YTD Spend</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($suppliers as $sup)
+                <tr>
+                    <td class="font-bold text-gray-900">{{ $sup->name }}</td>
+                    <td>{{ $sup->category }}</td>
+                    <td class="text-xs text-gray-600 font-mono">{{ $sup->contact_email }}</td>
+                    <td class="font-bold font-heading text-gray-800">{{ $sup->open_pos_count }}</td>
+                    <td class="font-bold font-heading text-gray-800">RM {{ number_format($sup->ytd_spend) }}</td>
+                    <td><span class="pill low">Active</span></td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 
     <!-- Add Supplier Modal -->
     @if($showModal)

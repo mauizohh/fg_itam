@@ -33,9 +33,6 @@
                 <img src="{{ asset('images/fg_logo.png') }}" alt="Logo" class="h-9 sm:h-10">
                 <h1 class="text-base sm:text-lg font-heading font-bold text-fg-red hidden sm:block truncate">FG IT ASSET MANAGEMENT</h1>
             </a>
-            <div class="hidden lg:flex items-center text-xs text-gray-400 pl-4 border-l border-gray-200 ml-2">
-                <span class="text-gray-600 font-medium">{{ $breadcrumb ?? 'IT Asset Management' }}</span>
-            </div>
         </div>
 
         <!-- Right User Actions -->

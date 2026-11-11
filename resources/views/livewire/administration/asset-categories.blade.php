@@ -13,41 +13,36 @@
         </button>
     </div>
 
-    <!-- Table: Asset Categories matching UI 25 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Asset Categories</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Category</th>
-                        <th>Prefix</th>
-                        <th>Assets</th>
-                        <th>Useful Life</th>
-                        <th>Tracking Fields</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($categories as $cat)
-                    @php
-                        $assetCount = \App\Models\Asset::where('category_id', $cat->id)->count();
-                    @endphp
-                    <tr>
-                        <td class="font-bold text-gray-900">{{ $cat->name }}</td>
-                        <td class="font-mono text-xs font-bold text-[#a92d31]">{{ $cat->prefix }}</td>
-                        <td class="font-bold font-heading text-gray-800">{{ $assetCount ?: ($cat->id === 'LAP' ? 318 : ($cat->id === 'MON' ? 284 : 96)) }}</td>
-                        <td class="text-gray-700 font-semibold">{{ $cat->useful_life_years }} years</td>
-                        <td class="text-xs text-gray-600">{{ $cat->tracking_fields }}</td>
-                        <td><span class="pill low">Active</span></td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Table: Asset Categories -->
+    <x-table-section title="Asset Categories">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Prefix</th>
+                    <th>Assets</th>
+                    <th>Useful Life</th>
+                    <th>Tracking Fields</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($categories as $cat)
+                @php
+                    $assetCount = \App\Models\Asset::where('category_id', $cat->id)->count();
+                @endphp
+                <tr>
+                    <td class="font-bold text-gray-900">{{ $cat->name }}</td>
+                    <td class="font-mono text-xs font-bold text-[#a92d31]">{{ $cat->prefix }}</td>
+                    <td class="font-bold font-heading text-gray-800">{{ $assetCount ?: ($cat->id === 'LAP' ? 318 : ($cat->id === 'MON' ? 284 : 96)) }}</td>
+                    <td class="text-gray-700 font-semibold">{{ $cat->useful_life_years }} years</td>
+                    <td class="text-xs text-gray-600">{{ $cat->tracking_fields }}</td>
+                    <td><span class="pill low">Active</span></td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 
     <!-- Add Category Modal -->
     @if($showModal)

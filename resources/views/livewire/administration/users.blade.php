@@ -32,44 +32,39 @@
         </div>
     </div>
 
-    <!-- Table: System Users matching UI 27 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">System Users</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Last Login</th>
-                        <th>Status</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $u)
-                    <tr>
-                        <td class="font-bold text-gray-900">{{ $u['name'] }}</td>
-                        <td class="text-xs font-mono text-gray-600">{{ $u['email'] }}</td>
-                        <td>
-                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-800">
-                                {{ $u['role'] }}
-                            </span>
-                        </td>
-                        <td class="text-xs text-gray-600">{{ $u['last_login'] }}</td>
-                        <td><span class="pill low">{{ $u['status'] }}</span></td>
-                        <td class="text-center">
-                            <button class="inline-flex items-center text-xs font-semibold px-3 py-1 rounded bg-gray-50 hover:bg-[#a92d31] hover:text-white border border-gray-200 transition">
-                                Edit
-                            </button>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Table: System Users -->
+    <x-table-section title="System Users">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Last Login</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($users as $u)
+                <tr>
+                    <td class="font-bold text-gray-900">{{ $u['name'] }}</td>
+                    <td class="text-xs font-mono text-gray-600">{{ $u['email'] }}</td>
+                    <td>
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-800">
+                            {{ $u['role'] }}
+                        </span>
+                    </td>
+                    <td class="text-xs text-gray-600">{{ $u['last_login'] }}</td>
+                    <td><span class="pill low">{{ $u['status'] }}</span></td>
+                    <td class="text-center">
+                        <button class="inline-flex items-center text-xs font-semibold px-3 py-1 rounded bg-gray-50 hover:bg-[#a92d31] hover:text-white border border-gray-200 transition">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 </div>

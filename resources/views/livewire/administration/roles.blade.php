@@ -13,36 +13,31 @@
         </button>
     </div>
 
-    <!-- Table: Role Permission Matrix matching UI 28 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Role Permission Matrix</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Permission</th>
-                        <th>System Admin</th>
-                        <th>IT Admin</th>
-                        <th>IT Support</th>
-                        <th>Finance</th>
-                        <th>Auditor</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($permissions as $p)
-                    <tr>
-                        <td class="font-bold text-gray-900">{{ $p['perm'] }}</td>
-                        <td><span class="pill low">{{ $p['admin'] }}</span></td>
-                        <td><span class="pill {{ $p['it_admin'] === 'Yes' ? 'low' : 'closed' }}">{{ $p['it_admin'] }}</span></td>
-                        <td><span class="pill {{ $p['it_support'] === 'Yes' ? 'low' : ($p['it_support'] === 'Limited' ? 'high' : 'closed') }}">{{ $p['it_support'] }}</span></td>
-                        <td><span class="pill {{ $p['finance'] === 'Yes' ? 'low' : ($p['finance'] === 'Read' ? 'normal' : 'closed') }}">{{ $p['finance'] }}</span></td>
-                        <td><span class="pill {{ $p['auditor'] === 'Yes' ? 'low' : ($p['auditor'] === 'Read' ? 'normal' : 'closed') }}">{{ $p['auditor'] }}</span></td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Table: Role Permission Matrix -->
+    <x-table-section title="Role Permission Matrix">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Permission</th>
+                    <th>System Admin</th>
+                    <th>IT Admin</th>
+                    <th>IT Support</th>
+                    <th>Finance</th>
+                    <th>Auditor</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($permissions as $p)
+                <tr>
+                    <td class="font-bold text-gray-900">{{ $p['perm'] }}</td>
+                    <td><span class="pill low">{{ $p['admin'] }}</span></td>
+                    <td><span class="pill {{ $p['it_admin'] === 'Yes' ? 'low' : 'closed' }}">{{ $p['it_admin'] }}</span></td>
+                    <td><span class="pill {{ $p['it_support'] === 'Yes' ? 'low' : ($p['it_support'] === 'Limited' ? 'high' : 'closed') }}">{{ $p['it_support'] }}</span></td>
+                    <td><span class="pill {{ $p['finance'] === 'Yes' ? 'low' : ($p['finance'] === 'Read' ? 'normal' : 'closed') }}">{{ $p['finance'] }}</span></td>
+                    <td><span class="pill {{ $p['auditor'] === 'Yes' ? 'low' : ($p['auditor'] === 'Read' ? 'normal' : 'closed') }}">{{ $p['auditor'] }}</span></td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 </div>

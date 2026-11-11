@@ -36,44 +36,39 @@
         </div>
     </div>
 
-    <!-- Table: Audit Campaigns matching UI 22 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Audit Campaigns</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Audit</th>
-                        <th>Scope</th>
-                        <th>Period</th>
-                        <th>Verified</th>
-                        <th>Exceptions</th>
-                        <th>Accuracy</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($audits as $aud)
-                    <tr>
-                        <td class="font-bold text-[#a92d31] font-heading">{{ $aud->id }}</td>
-                        <td class="font-bold text-gray-800">{{ $aud->scope }}</td>
-                        <td class="text-xs text-gray-600">{{ $aud->period }}</td>
-                        <td class="font-semibold text-gray-800">{{ $aud->verified_count }} / {{ $aud->total_in_scope }}</td>
-                        <td class="{{ $aud->exceptions_count > 0 ? 'text-amber-600 font-bold' : 'text-gray-500' }}">
-                            {{ $aud->exceptions_count }}
-                        </td>
-                        <td class="font-semibold text-emerald-700">
-                            {{ $aud->accuracy_rate ? $aud->accuracy_rate . '%' : '-' }}
-                        </td>
-                        <td>
-                            <span class="{{ $aud->status_pill_class }}">{{ $aud->status }}</span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Table: Audit Campaigns -->
+    <x-table-section title="Audit Campaigns">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Audit</th>
+                    <th>Scope</th>
+                    <th>Period</th>
+                    <th>Verified</th>
+                    <th>Exceptions</th>
+                    <th>Accuracy</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($audits as $aud)
+                <tr>
+                    <td class="font-bold text-[#a92d31] font-heading">{{ $aud->id }}</td>
+                    <td class="font-bold text-gray-800">{{ $aud->scope }}</td>
+                    <td class="text-xs text-gray-600">{{ $aud->period }}</td>
+                    <td class="font-semibold text-gray-800">{{ $aud->verified_count }} / {{ $aud->total_in_scope }}</td>
+                    <td class="{{ $aud->exceptions_count > 0 ? 'text-amber-600 font-bold' : 'text-gray-500' }}">
+                        {{ $aud->exceptions_count }}
+                    </td>
+                    <td class="font-semibold text-emerald-700">
+                        {{ $aud->accuracy_rate ? $aud->accuracy_rate . '%' : '-' }}
+                    </td>
+                    <td>
+                        <span class="{{ $aud->status_pill_class }}">{{ $aud->status }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 </div>

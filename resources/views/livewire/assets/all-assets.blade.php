@@ -54,63 +54,62 @@
         </div>
     </div>
 
-    <!-- Assets Register Table matching UI 02 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Asset Register</h3>
-            <span class="text-xs text-gray-400">Total: {{ $assets->total() }} records</span>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Asset ID</th>
-                        <th>Asset</th>
-                        <th>Serial No.</th>
-                        <th>Assigned To</th>
-                        <th>Location</th>
-                        <th>Status</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($assets as $asset)
-                    <tr>
-                        <td>
-                            <a href="{{ route('assets.detail', $asset->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
-                                {{ $asset->id }}
-                            </a>
-                        </td>
-                        <td>
-                            <div class="font-bold text-gray-800">{{ $asset->name }}</div>
-                            <div class="text-[11px] text-gray-400 font-normal">{{ $asset->category_name }} &bull; {{ $asset->brand }}</div>
-                        </td>
-                        <td class="font-mono text-xs text-gray-600">{{ $asset->serial_number }}</td>
-                        <td>{{ $asset->assigned_user ?: '-' }}</td>
-                        <td>{{ $asset->assigned_location }}</td>
-                        <td>
-                            <span class="{{ $asset->status_pill_class }}">{{ $asset->status }}</span>
-                        </td>
-                        <td class="text-center">
-                            <a href="{{ route('assets.detail', $asset->id) }}" class="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded border border-gray-200 bg-gray-50 hover:bg-[#a92d31] hover:text-white transition">
-                                View
-                            </a>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-8 text-gray-400">
-                            No matching assets found.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="p-4 border-t border-gray-100">
+    <!-- Assets Register Table -->
+    <x-table-section title="Asset Register">
+        <x-slot:badge>
+            Total: <strong class="text-primary-600">{{ $assets->total() }}</strong> records
+        </x-slot:badge>
+
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Asset ID</th>
+                    <th>Asset</th>
+                    <th>Serial No.</th>
+                    <th>Assigned To</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($assets as $asset)
+                <tr>
+                    <td>
+                        <a href="{{ route('assets.detail', $asset->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
+                            {{ $asset->id }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="font-bold text-gray-800">{{ $asset->name }}</div>
+                        <div class="text-[11px] text-gray-400 font-normal">{{ $asset->category_name }} &bull; {{ $asset->brand }}</div>
+                    </td>
+                    <td class="font-mono text-xs text-gray-600">{{ $asset->serial_number }}</td>
+                    <td>{{ $asset->assigned_user ?: '-' }}</td>
+                    <td>{{ $asset->assigned_location }}</td>
+                    <td>
+                        <span class="{{ $asset->status_pill_class }}">{{ $asset->status }}</span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ route('assets.detail', $asset->id) }}" class="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded border border-gray-200 bg-gray-50 hover:bg-[#a92d31] hover:text-white transition">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-gray-400">
+                        No matching assets found.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        <x-slot:pagination>
             {{ $assets->links() }}
-        </div>
-    </div>
+        </x-slot:pagination>
+    </x-table-section>
 
     <!-- Modal: Add Asset -->
     @if($showAddModal)

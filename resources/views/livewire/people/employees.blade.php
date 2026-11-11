@@ -33,52 +33,43 @@
         </div>
     </div>
 
-    <!-- Employee Directory Table matching UI 07 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Employee Directory</h3>
-            <span class="text-xs text-gray-400">{{ count($employees) }} staff members</span>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Department</th>
-                        <th>Location</th>
-                        <th>Assigned Assets</th>
-                        <th>Pending Returns</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($employees as $emp)
-                    <tr>
-                        <td class="font-bold text-gray-900">
-                            <div class="flex items-center gap-3">
-                                <div class="w-7 h-7 rounded-full bg-red-100 text-[#a92d31] font-bold font-heading text-xs flex items-center justify-center">
-                                    {{ $emp->initials }}
-                                </div>
-                                <span>{{ $emp->name }}</span>
-                            </div>
-                        </td>
-                        <td>{{ $emp->department }}</td>
-                        <td>{{ $emp->location }}</td>
-                        <td class="font-bold font-heading text-gray-800">{{ $emp->assigned_assets_count }}</td>
-                        <td>
-                            <span class="{{ $emp->pending_returns_count > 0 ? 'text-amber-600 font-bold' : 'text-gray-500' }}">
-                                {{ $emp->pending_returns_count }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <a href="{{ route('people.employee.detail', $emp->id) }}" class="inline-flex items-center text-xs font-semibold px-3 py-1 rounded bg-gray-50 hover:bg-[#a92d31] hover:text-white border border-gray-200 transition">
-                                View
-                            </a>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Employee Directory Table -->
+    <x-table-section title="Employee Directory">
+        <x-slot:badge>
+            <strong class="text-primary-600">{{ count($employees) }}</strong> staff members
+        </x-slot:badge>
+
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>Location</th>
+                    <th>Assigned Assets</th>
+                    <th>Pending Returns</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($employees as $emp)
+                <tr>
+                    <td class="font-bold text-gray-900">{{ $emp->name }}</td>
+                    <td>{{ $emp->department }}</td>
+                    <td>{{ $emp->location }}</td>
+                    <td class="font-bold font-heading text-gray-800">{{ $emp->assigned_assets_count }}</td>
+                    <td>
+                        <span class="{{ $emp->pending_returns_count > 0 ? 'text-amber-600 font-bold' : 'text-gray-500' }}">
+                            {{ $emp->pending_returns_count }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ route('people.employee.detail', $emp->id) }}" class="inline-flex items-center text-xs font-semibold px-3 py-1 rounded bg-gray-50 hover:bg-[#a92d31] hover:text-white border border-gray-200 transition">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 </div>

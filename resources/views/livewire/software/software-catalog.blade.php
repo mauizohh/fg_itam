@@ -38,41 +38,36 @@
     </div>
 
     <!-- Software Catalog Table -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Software Catalog</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Software</th>
-                        <th>Vendor</th>
-                        <th>Type</th>
-                        <th>Managed Devices</th>
-                        <th>Owner</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($software as $s)
-                    <tr>
-                        <td class="font-bold text-gray-900">{{ $s->name }}</td>
-                        <td>{{ $s->vendor }}</td>
-                        <td>
-                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">
-                                {{ $s->type }}
-                            </span>
-                        </td>
-                        <td class="font-bold font-heading text-gray-800">{{ $s->managed_devices_count }}</td>
-                        <td>{{ $s->owner_department }}</td>
-                        <td><span class="pill low">Active</span></td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <x-table-section title="Software Catalog">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Software</th>
+                    <th>Vendor</th>
+                    <th>Type</th>
+                    <th>Managed Devices</th>
+                    <th>Owner</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($software as $s)
+                <tr>
+                    <td class="font-bold text-gray-900">{{ $s->name }}</td>
+                    <td>{{ $s->vendor }}</td>
+                    <td>
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">
+                            {{ $s->type }}
+                        </span>
+                    </td>
+                    <td class="font-bold font-heading text-gray-800">{{ $s->managed_devices_count }}</td>
+                    <td>{{ $s->owner_department }}</td>
+                    <td><span class="pill low">Active</span></td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 
     <!-- Add Modal -->
     @if($showModal)

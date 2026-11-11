@@ -22,34 +22,27 @@
     </div>
 
     <!-- 4 KPI Metrics -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- TOTAL ASSETS -->
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition">
-            <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider font-heading">TOTAL ASSETS</span>
-            <strong class="block text-3xl font-heading font-extrabold text-[#3b4048] mt-2">1,250</strong>
-            <small class="block text-xs text-gray-400 mt-1">Across all active categories</small>
-        </div>
-
-        <!-- ASSIGNED -->
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition">
-            <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider font-heading">ASSIGNED</span>
-            <strong class="block text-3xl font-heading font-extrabold text-[#3b4048] mt-2">920</strong>
-            <small class="block text-xs text-emerald-600 font-bold mt-1">73.6% of total</small>
-        </div>
-
-        <!-- AVAILABLE -->
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition">
-            <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider font-heading">AVAILABLE</span>
-            <strong class="block text-3xl font-heading font-extrabold text-[#3b4048] mt-2">130</strong>
-            <small class="block text-xs text-gray-400 mt-1">Ready for allocation</small>
-        </div>
-
-        <!-- ATTENTION NEEDED -->
-        <div class="bg-white rounded-xl p-5 border border-red-200 shadow-sm hover:shadow-md transition bg-gradient-to-br from-red-50/50 to-white">
-            <span class="block text-xs font-bold text-red-600 uppercase tracking-wider font-heading">ATTENTION NEEDED</span>
-            <strong class="block text-3xl font-heading font-extrabold text-[#b91c1c] mt-2">33</strong>
-            <small class="block text-xs text-red-500 mt-1">Repair, missing or overdue</small>
-        </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[18px]">
+        <x-stat-card
+            title="Total Assets"
+            value="1,250"
+            subtitle="Across all active categories"
+        />
+        <x-stat-card
+            title="Assigned"
+            value="920"
+            subtitle="73.6% of total"
+        />
+        <x-stat-card
+            title="Available"
+            value="130"
+            subtitle="Ready for allocation"
+        />
+        <x-stat-card
+            title="Attention Needed"
+            value="33"
+            subtitle="Repair, missing or overdue"
+        />
     </div>
 
     <!-- Middle Split: Asset Status & Upcoming Actions -->
@@ -138,64 +131,62 @@
     </div>
 
     <!-- Recent Activity Table -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Recent Activity</h3>
+    <x-table-section title="Recent Activity">
+        <x-slot:actions>
             <a href="{{ route('admin.audit-logs') }}" class="text-xs font-bold text-[#a92d31] hover:underline">View All Logs</a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th class="w-28">Time</th>
-                        <th>Asset</th>
-                        <th>Action</th>
-                        <th class="w-32">User</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="font-bold text-gray-700">10:42</td>
-                        <td>
-                            <a href="{{ route('assets.detail', 'IT-LAP-2026-00123') }}" class="text-[#a92d31] hover:underline font-bold font-heading">
-                                IT-LAP-2026-00123
-                            </a>
-                        </td>
-                        <td>Assigned to Sarah Lim</td>
-                        <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">Admin</span></td>
-                    </tr>
-                    <tr>
-                        <td class="font-bold text-gray-700">09:18</td>
-                        <td>
-                            <a href="{{ route('assets.detail', 'IT-MON-2026-00391') }}" class="text-[#a92d31] hover:underline font-bold font-heading">
-                                IT-MON-2026-00391
-                            </a>
-                        </td>
-                        <td>Returned to IT Store</td>
-                        <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">Support</span></td>
-                    </tr>
-                    <tr>
-                        <td class="font-bold text-gray-700">Yesterday</td>
-                        <td>
-                            <a href="{{ route('assets.detail', 'IT-NET-2026-00201') }}" class="text-[#a92d31] hover:underline font-bold font-heading">
-                                IT-NET-2026-00201
-                            </a>
-                        </td>
-                        <td>Warranty updated</td>
-                        <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">Admin</span></td>
-                    </tr>
-                    <tr>
-                        <td class="font-bold text-gray-700">Yesterday</td>
-                        <td>
-                            <a href="{{ route('assets.detail', 'IT-LAP-2026-00418') }}" class="text-[#a92d31] hover:underline font-bold font-heading">
-                                IT-LAP-2026-00418
-                            </a>
-                        </td>
-                        <td>Marked in repair</td>
-                        <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">Support</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+        </x-slot:actions>
+
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th class="w-28">Time</th>
+                    <th>Asset</th>
+                    <th>Action</th>
+                    <th class="w-32">User</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="font-bold text-gray-700">10:42</td>
+                    <td>
+                        <a href="{{ route('assets.detail', 'IT-LAP-2026-00123') }}" class="text-[#a92d31] hover:underline font-bold font-heading">
+                            IT-LAP-2026-00123
+                        </a>
+                    </td>
+                    <td>Assigned to Sarah Lim</td>
+                    <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">Admin</span></td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-gray-700">09:18</td>
+                    <td>
+                        <a href="{{ route('assets.detail', 'IT-MON-2026-00391') }}" class="text-[#a92d31] hover:underline font-bold font-heading">
+                            IT-MON-2026-00391
+                        </a>
+                    </td>
+                    <td>Returned to IT Store</td>
+                    <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">Support</span></td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-gray-700">Yesterday</td>
+                    <td>
+                        <a href="{{ route('assets.detail', 'IT-NET-2026-00201') }}" class="text-[#a92d31] hover:underline font-bold font-heading">
+                            IT-NET-2026-00201
+                        </a>
+                    </td>
+                    <td>Warranty updated</td>
+                    <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">Admin</span></td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-gray-700">Yesterday</td>
+                    <td>
+                        <a href="{{ route('assets.detail', 'IT-LAP-2026-00418') }}" class="text-[#a92d31] hover:underline font-bold font-heading">
+                            IT-LAP-2026-00418
+                        </a>
+                    </td>
+                    <td>Marked in repair</td>
+                    <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">Support</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </x-table-section>
 </div>

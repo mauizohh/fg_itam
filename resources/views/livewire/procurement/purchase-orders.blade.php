@@ -41,49 +41,44 @@
     </div>
 
     <!-- Table: Purchase Orders -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Purchase Orders</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>PO Number</th>
-                        <th>Supplier</th>
-                        <th>Requested By</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Delivery</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($orders as $po)
-                    <tr>
-                        <td class="font-bold text-[#a92d31] font-heading">{{ $po->id }}</td>
-                        <td class="font-semibold text-gray-900">{{ $po->supplier_name }}</td>
-                        <td>{{ $po->requested_by }}</td>
-                        <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($po->po_date)->format('d M') }}</td>
-                        <td class="font-bold font-heading text-gray-800">RM {{ number_format($po->amount) }}</td>
-                        <td class="text-xs text-gray-600">{{ $po->delivery_date ? \Carbon\Carbon::parse($po->delivery_date)->format('d M') : '-' }}</td>
-                        <td>
-                            @php
-                                $pill = match($po->status) {
-                                    'Approved' => 'low',
-                                    'Ordered' => 'normal',
-                                    'Partial' => 'high',
-                                    default => 'normal',
-                                };
-                            @endphp
-                            <span class="pill {{ $pill }}">{{ $po->status }}</span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <x-table-section title="Purchase Orders">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>PO Number</th>
+                    <th>Supplier</th>
+                    <th>Requested By</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Delivery</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($orders as $po)
+                <tr>
+                    <td class="font-bold text-[#a92d31] font-heading">{{ $po->id }}</td>
+                    <td class="font-semibold text-gray-900">{{ $po->supplier_name }}</td>
+                    <td>{{ $po->requested_by }}</td>
+                    <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($po->po_date)->format('d M') }}</td>
+                    <td class="font-bold font-heading text-gray-800">RM {{ number_format($po->amount) }}</td>
+                    <td class="text-xs text-gray-600">{{ $po->delivery_date ? \Carbon\Carbon::parse($po->delivery_date)->format('d M') : '-' }}</td>
+                    <td>
+                        @php
+                            $pill = match($po->status) {
+                                'Approved' => 'low',
+                                'Ordered' => 'normal',
+                                'Partial' => 'high',
+                                default => 'normal',
+                            };
+                        @endphp
+                        <span class="pill {{ $pill }}">{{ $po->status }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 
     <!-- New PO Modal -->
     @if($showModal)

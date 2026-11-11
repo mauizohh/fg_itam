@@ -13,40 +13,35 @@
         </button>
     </div>
 
-    <!-- Table: Renewal Calendar matching UI 20 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Renewal Calendar</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Renewal</th>
-                        <th>Service</th>
-                        <th>Owner</th>
-                        <th>Renewal Date</th>
-                        <th>Annual Cost</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($renewals as $ren)
-                    <tr>
-                        <td class="font-bold text-[#a92d31] font-heading">{{ $ren->id }}</td>
-                        <td class="font-bold text-gray-800">{{ $ren->service_name }}</td>
-                        <td>{{ $ren->owner }}</td>
-                        <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($ren->renewal_date)->format('d M Y') }}</td>
-                        <td class="font-bold font-heading text-gray-800">RM {{ number_format($ren->annual_cost) }}</td>
-                        <td>
-                            <span class="{{ $ren->status_pill_class }}">{{ $ren->status }}</span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Table: Renewal Calendar -->
+    <x-table-section title="Renewal Calendar">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Renewal</th>
+                    <th>Service</th>
+                    <th>Owner</th>
+                    <th>Renewal Date</th>
+                    <th>Annual Cost</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($renewals as $ren)
+                <tr>
+                    <td class="font-bold text-[#a92d31] font-heading">{{ $ren->id }}</td>
+                    <td class="font-bold text-gray-800">{{ $ren->service_name }}</td>
+                    <td>{{ $ren->owner }}</td>
+                    <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($ren->renewal_date)->format('d M Y') }}</td>
+                    <td class="font-bold font-heading text-gray-800">RM {{ number_format($ren->annual_cost) }}</td>
+                    <td>
+                        <span class="{{ $ren->status_pill_class }}">{{ $ren->status }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 
     <!-- Add Modal -->
     @if($showModal)

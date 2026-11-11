@@ -42,65 +42,64 @@
     </div>
 
     <!-- Current Assignments Table -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Current Assignments</h3>
-            <span class="text-xs text-gray-400">{{ $assignments->total() }} active assignments</span>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Asset ID</th>
-                        <th>Asset</th>
-                        <th>Assigned To</th>
-                        <th>Department</th>
-                        <th>Assigned Date</th>
-                        <th>Status</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($assignments as $item)
-                    <tr>
-                        <td>
-                            <a href="{{ route('assets.detail', $item->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
-                                {{ $item->id }}
+    <x-table-section title="Current Assignments">
+        <x-slot:badge>
+            <strong class="text-primary-600">{{ $assignments->total() }}</strong> active assignments
+        </x-slot:badge>
+
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Asset ID</th>
+                    <th>Asset</th>
+                    <th>Assigned To</th>
+                    <th>Department</th>
+                    <th>Assigned Date</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($assignments as $item)
+                <tr>
+                    <td>
+                        <a href="{{ route('assets.detail', $item->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
+                            {{ $item->id }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="font-bold text-gray-800">{{ $item->name }}</div>
+                        <div class="text-[11px] text-gray-400">{{ $item->serial_number }}</div>
+                    </td>
+                    <td class="font-semibold text-gray-800">{{ $item->assigned_user }}</td>
+                    <td>{{ $item->department ?: 'General' }}</td>
+                    <td class="text-xs text-gray-600">{{ $item->assigned_date ? \Carbon\Carbon::parse($item->assigned_date)->format('d M Y') : '10 Aug 2026' }}</td>
+                    <td>
+                        <span class="pill normal">Assigned</span>
+                    </td>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <a href="{{ route('transactions.return') }}?asset_id={{ $item->id }}" class="text-xs font-semibold px-2.5 py-1 rounded border border-gray-200 hover:bg-red-50 text-gray-700 hover:text-[#a92d31] transition">
+                                Return
                             </a>
-                        </td>
-                        <td>
-                            <div class="font-bold text-gray-800">{{ $item->name }}</div>
-                            <div class="text-[11px] text-gray-400">{{ $item->serial_number }}</div>
-                        </td>
-                        <td class="font-semibold text-gray-800">{{ $item->assigned_user }}</td>
-                        <td>{{ $item->department ?: 'General' }}</td>
-                        <td class="text-xs text-gray-600">{{ $item->assigned_date ? \Carbon\Carbon::parse($item->assigned_date)->format('d M Y') : '10 Aug 2026' }}</td>
-                        <td>
-                            <span class="pill normal">Assigned</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <a href="{{ route('transactions.return') }}?asset_id={{ $item->id }}" class="text-xs font-semibold px-2.5 py-1 rounded border border-gray-200 hover:bg-red-50 text-gray-700 hover:text-[#a92d31] transition">
-                                    Return
-                                </a>
-                                <a href="{{ route('transactions.transfer') }}?asset_id={{ $item->id }}" class="text-xs font-semibold px-2.5 py-1 rounded border border-gray-200 hover:bg-gray-100 text-gray-700 transition">
-                                    Transfer
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-8 text-gray-400">
-                            No assignments matching filter.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="p-4 border-t border-gray-100">
+                            <a href="{{ route('transactions.transfer') }}?asset_id={{ $item->id }}" class="text-xs font-semibold px-2.5 py-1 rounded border border-gray-200 hover:bg-gray-100 text-gray-700 transition">
+                                Transfer
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-gray-400">
+                        No assignments matching filter.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        <x-slot:pagination>
             {{ $assignments->links() }}
-        </div>
-    </div>
+        </x-slot:pagination>
+    </x-table-section>
 </div>

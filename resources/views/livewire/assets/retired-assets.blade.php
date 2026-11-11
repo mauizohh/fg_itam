@@ -40,56 +40,54 @@
     </div>
 
     <!-- Retirement Register Table -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Retirement Register</h3>
-            <span class="text-xs text-gray-400">{{ count($retired) }} decommissioned assets</span>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Asset ID</th>
-                        <th>Asset</th>
-                        <th>Retired Date</th>
-                        <th>Reason</th>
-                        <th>Disposition</th>
-                        <th>Data Sanitization</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($retired as $asset)
-                    <tr>
-                        <td>
-                            <a href="{{ route('assets.detail', $asset->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
-                                {{ $asset->id }}
-                            </a>
-                        </td>
-                        <td class="font-bold text-gray-800">{{ $asset->name }}</td>
-                        <td class="text-xs text-gray-600">{{ $asset->retired_date ? \Carbon\Carbon::parse($asset->retired_date)->format('d M Y') : '31 Jul 2026' }}</td>
-                        <td>{{ $asset->retirement_reason ?: 'End of life' }}</td>
-                        <td>
-                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">
-                                {{ $asset->disposition ?: 'Recycle' }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="pill {{ $asset->data_sanitization === 'Verified' ? 'low' : 'closed' }}">
-                                {{ $asset->data_sanitization ?: 'Verified' }}
-                            </span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-8 text-gray-400">
-                            No retired assets found.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <x-table-section title="Retirement Register">
+        <x-slot:badge>
+            <strong class="text-primary-600">{{ count($retired) }}</strong> decommissioned assets
+        </x-slot:badge>
+
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Asset ID</th>
+                    <th>Asset</th>
+                    <th>Retired Date</th>
+                    <th>Reason</th>
+                    <th>Disposition</th>
+                    <th>Data Sanitization</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($retired as $asset)
+                <tr>
+                    <td>
+                        <a href="{{ route('assets.detail', $asset->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
+                            {{ $asset->id }}
+                        </a>
+                    </td>
+                    <td class="font-bold text-gray-800">{{ $asset->name }}</td>
+                    <td class="text-xs text-gray-600">{{ $asset->retired_date ? \Carbon\Carbon::parse($asset->retired_date)->format('d M Y') : '31 Jul 2026' }}</td>
+                    <td>{{ $asset->retirement_reason ?: 'End of life' }}</td>
+                    <td>
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">
+                            {{ $asset->disposition ?: 'Recycle' }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="pill {{ $asset->data_sanitization === 'Verified' ? 'low' : 'closed' }}">
+                            {{ $asset->data_sanitization ?: 'Verified' }}
+                        </span>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-400">
+                        No retired assets found.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </x-table-section>
 
     <!-- Modal: New Retirement -->
     @if($showRetireModal)

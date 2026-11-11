@@ -39,46 +39,41 @@
         </div>
     </div>
 
-    <!-- Table: Repair Cases matching UI 16 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">Repair Cases</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Case</th>
-                        <th>Asset</th>
-                        <th>Issue</th>
-                        <th>Opened</th>
-                        <th>Vendor</th>
-                        <th>Cost</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($repairs as $rpr)
-                    <tr>
-                        <td class="font-bold text-[#a92d31] font-heading">{{ $rpr->id }}</td>
-                        <td>
-                            <a href="{{ route('assets.detail', $rpr->asset_id) }}" class="font-semibold text-gray-800 hover:text-[#a92d31]">
-                                {{ $rpr->asset_id }}
-                            </a>
-                        </td>
-                        <td>{{ $rpr->issue }}</td>
-                        <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($rpr->opened_date)->format('d M') }}</td>
-                        <td class="font-semibold text-gray-700">{{ $rpr->vendor }}</td>
-                        <td class="font-bold font-heading text-gray-800">RM {{ number_format($rpr->cost) }}</td>
-                        <td>
-                            <span class="{{ $rpr->status_pill_class }}">{{ $rpr->status }}</span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Table: Repair Cases -->
+    <x-table-section title="Repair Cases">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Case</th>
+                    <th>Asset</th>
+                    <th>Issue</th>
+                    <th>Opened</th>
+                    <th>Vendor</th>
+                    <th>Cost</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($repairs as $rpr)
+                <tr>
+                    <td class="font-bold text-[#a92d31] font-heading">{{ $rpr->id }}</td>
+                    <td>
+                        <a href="{{ route('assets.detail', $rpr->asset_id) }}" class="font-semibold text-gray-800 hover:text-[#a92d31]">
+                            {{ $rpr->asset_id }}
+                        </a>
+                    </td>
+                    <td>{{ $rpr->issue }}</td>
+                    <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($rpr->opened_date)->format('d M') }}</td>
+                    <td class="font-semibold text-gray-700">{{ $rpr->vendor }}</td>
+                    <td class="font-bold font-heading text-gray-800">RM {{ number_format($rpr->cost) }}</td>
+                    <td>
+                        <span class="{{ $rpr->status_pill_class }}">{{ $rpr->status }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-table-section>
 
     <!-- Modal: New Repair -->
     @if($showModal)

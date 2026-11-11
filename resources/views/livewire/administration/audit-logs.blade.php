@@ -41,48 +41,43 @@
         </div>
     </div>
 
-    <!-- Table: System Activity Log matching UI 30 -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-heading font-bold text-base text-[#3b4048]">System Activity Log</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left itam-table">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Object</th>
-                        <th>Before</th>
-                        <th>After</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($logs as $log)
-                    <tr>
-                        <td class="text-xs text-gray-600 font-medium">
-                            {{ \Carbon\Carbon::parse($log->timestamp)->format('d M H:i') }}
-                        </td>
-                        <td class="font-semibold text-gray-900">{{ $log->user }}</td>
-                        <td>
-                            <span class="font-bold text-gray-800">{{ $log->action }}</span>
-                        </td>
-                        <td>
-                            <a href="{{ route('assets.detail', $log->object_id) }}" class="font-bold text-[#a92d31] font-heading hover:underline">
-                                {{ $log->object_id }}
-                            </a>
-                        </td>
-                        <td class="text-xs text-gray-500 font-mono">{{ $log->before_state ?: '-' }}</td>
-                        <td class="text-xs text-gray-800 font-mono font-medium">{{ $log->after_state ?: '-' }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-6 text-gray-400">No activity logs recorded.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Table: System Activity Log -->
+    <x-table-section title="System Activity Log">
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Object</th>
+                    <th>Before</th>
+                    <th>After</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($logs as $log)
+                <tr>
+                    <td class="text-xs text-gray-600 font-medium">
+                        {{ \Carbon\Carbon::parse($log->timestamp)->format('d M H:i') }}
+                    </td>
+                    <td class="font-semibold text-gray-900">{{ $log->user }}</td>
+                    <td>
+                        <span class="font-bold text-gray-800">{{ $log->action }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ route('assets.detail', $log->object_id) }}" class="font-bold text-[#a92d31] font-heading hover:underline">
+                            {{ $log->object_id }}
+                        </a>
+                    </td>
+                    <td class="text-xs text-gray-500 font-mono">{{ $log->before_state ?: '-' }}</td>
+                    <td class="text-xs text-gray-800 font-mono font-medium">{{ $log->after_state ?: '-' }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" class="text-center py-6 text-gray-400">No activity logs recorded.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </x-table-section>
 </div>
