@@ -15,20 +15,18 @@
             <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">User</label>
             <select wire:model.live="userFilter" class="itam-select text-xs h-10">
                 <option value="All">All Users</option>
-                <option value="Amir Admin">Amir Admin</option>
-                <option value="Nora Support">Nora Support</option>
-                <option value="System">System</option>
+                @foreach ($availableUsers as $uName)
+                    <option value="{{ $uName }}">{{ $uName }}</option>
+                @endforeach
             </select>
         </div>
         <div>
             <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Action</label>
             <select wire:model.live="actionFilter" class="itam-select text-xs h-10">
                 <option value="All">All Actions</option>
-                <option value="Assign asset">Assign asset</option>
-                <option value="Return asset">Return asset</option>
-                <option value="Update warranty">Update warranty</option>
-                <option value="Open repair">Open repair</option>
-                <option value="Threshold alert">Threshold alert</option>
+                @foreach ($availableActions as $act)
+                    <option value="{{ $act }}">{{ $act }}</option>
+                @endforeach
             </select>
         </div>
         <div>
@@ -65,9 +63,13 @@
                         <span class="font-bold text-gray-800">{{ $log->action }}</span>
                     </td>
                     <td>
-                        <a href="{{ route('assets.detail', $log->object_id) }}" class="font-bold text-[#a92d31] font-heading hover:underline">
-                            {{ $log->object_id }}
-                        </a>
+                        @if ($log->object_type === 'Asset')
+                            <a href="{{ route('assets.detail', $log->object_id) }}" class="font-bold text-[#a92d31] font-heading hover:underline">
+                                {{ $log->object_id }}
+                            </a>
+                        @else
+                            <span class="text-xs font-mono text-gray-700">{{ $log->object_type }} #{{ $log->object_id }}</span>
+                        @endif
                     </td>
                     <td class="text-xs text-gray-500 font-mono">{{ $log->before_state ?: '-' }}</td>
                     <td class="text-xs text-gray-800 font-mono font-medium">{{ $log->after_state ?: '-' }}</td>

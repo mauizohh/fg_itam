@@ -3,22 +3,34 @@
 namespace App\Livewire\Procurement;
 
 use App\Models\Supplier;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class Suppliers extends Component
 {
     public string $search = '';
+
     public string $statusFilter = 'Active';
+
     public string $categoryFilter = 'All';
 
     public bool $showModal = false;
+
     public string $name = '';
+
     public string $category = 'Hardware';
+
     public string $contactEmail = '';
+
     public string $contactPhone = '';
 
     public function addSupplier()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('procurement.manage'), 403);
+
         $this->validate([
             'name' => 'required|string',
             'contactEmail' => 'required|email',
@@ -39,9 +51,13 @@ class Suppliers extends Component
 
     public function render()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('procurement.view'), 403);
+
         $query = Supplier::query();
 
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where('name', 'like', "%{$this->search}%");
         }
         if ($this->statusFilter !== 'All') {

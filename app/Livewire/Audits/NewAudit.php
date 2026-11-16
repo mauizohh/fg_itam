@@ -5,21 +5,30 @@ namespace App\Livewire\Audits;
 use App\Models\Asset;
 use App\Models\Audit;
 use App\Models\AuditException;
+use App\Models\User;
 use App\Services\AuditLogService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class NewAudit extends Component
 {
     public string $scanInput = 'IT-LAP-2026-00123';
+
     public ?string $feedbackMessage = null;
+
     public string $feedbackType = 'success';
 
     public function recordResult(string $result)
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('audits.scan'), 403);
+
         $id = trim($this->scanInput);
         if (empty($id)) {
             $this->feedbackMessage = 'Please enter or scan an Asset ID!';
             $this->feedbackType = 'error';
+
             return;
         }
 
@@ -41,7 +50,7 @@ class NewAudit extends Component
             AuditException::create([
                 'asset_id' => $id,
                 'exception_type' => $result,
-                'expected_info' => $asset ? ($asset->assigned_user . ' / ' . $asset->assigned_location) : 'KL Office',
+                'expected_info' => $asset ? ($asset->assigned_user.' / '.$asset->assigned_location) : 'KL Office',
                 'observed_info' => ($result === 'Not Found') ? 'No physical scan' : ($result === 'Wrong Location' ? 'Observed in Engineering' : 'Hardware damaged observed'),
                 'audit_id' => 'AUD-2026-006',
                 'owner_department' => 'Service Desk',
@@ -63,6 +72,10 @@ class NewAudit extends Component
 
     public function render()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('audits.scan'), 403);
+
         $audit = Audit::find('AUD-2026-006') ?? new Audit([
             'id' => 'AUD-2026-006',
             'name' => '2026 Annual Laptop Audit',

@@ -5,14 +5,16 @@
             <h1 class="text-2xl font-heading font-extrabold text-[#3b4048]">All Assets</h1>
             <p class="text-xs text-[#69717d] mt-0.5">Search, filter and manage the complete IT asset register.</p>
         </div>
-        <div>
-            <button wire:click="openAddModal" class="btn-primary">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Add Asset</span>
-            </button>
-        </div>
+        @if (auth()->user()?->hasPermission('assets.create'))
+            <div>
+                <button wire:click="openAddModal" class="btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Add Asset</span>
+                </button>
+            </div>
+        @endif
     </div>
 
     <!-- Filters Bar matching UI 02 -->
@@ -111,8 +113,7 @@
         </x-slot:pagination>
     </x-table-section>
 
-    <!-- Modal: Add Asset -->
-    @if($showAddModal)
+    @if (auth()->user()?->hasPermission('assets.create') && $showAddModal)
     <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between border-b pb-3">

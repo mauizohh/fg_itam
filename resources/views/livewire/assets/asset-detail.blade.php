@@ -80,7 +80,11 @@
                 </div>
                 <div>
                     <span class="text-gray-400 block text-[11px]">Purchase Cost</span>
-                    <strong class="text-gray-900 text-sm font-semibold">RM {{ number_format($asset->purchase_cost ?: 5200, 2) }}</strong>
+                    @if (auth()->user()?->canViewFinancialData())
+                        <strong class="text-gray-900 text-sm font-semibold">RM {{ number_format($asset->purchase_cost ?: 5200, 2) }}</strong>
+                    @else
+                        <span class="text-xs text-gray-400 italic">Restricted</span>
+                    @endif
                 </div>
                 <div>
                     <span class="text-gray-400 block text-[11px]">Warranty End</span>

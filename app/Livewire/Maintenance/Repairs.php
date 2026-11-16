@@ -4,24 +4,37 @@ namespace App\Livewire\Maintenance;
 
 use App\Models\Asset;
 use App\Models\Repair;
+use App\Models\User;
 use App\Services\AuditLogService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class Repairs extends Component
 {
     public string $search = '';
+
     public string $statusFilter = 'Open';
+
     public string $vendorFilter = 'All';
 
     public bool $showModal = false;
+
     public string $newCaseId = 'RPR-0275';
+
     public string $assetId = 'IT-LAP-2026-00418';
+
     public string $issue = 'Battery failure';
+
     public string $vendor = 'TechCare';
+
     public float $cost = 350.00;
 
     public function createRepair()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('maintenance.manage'), 403);
+
         $this->validate([
             'newCaseId' => 'required',
             'assetId' => 'required',
@@ -52,13 +65,21 @@ class Repairs extends Component
 
     public function render()
     {
-        $query = Repair::query();
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('maintenance.view'), 403);
 
-        if (!empty($this->search)) {
+        $query = Repair::query();
+        if ($actor->isDepartmentScoped()) {
+            $scopedIds = $actor->scopeDepartmentQuery(Asset::query(), 'department')->pluck('id');
+            $query->whereIn('asset_id', $scopedIds);
+        }
+
+        if (! empty($this->search)) {
             $query->where(function ($q) {
                 $q->where('id', 'like', "%{$this->search}%")
-                  ->orWhere('asset_id', 'like', "%{$this->search}%")
-                  ->orWhere('issue', 'like', "%{$this->search}%");
+                    ->orWhere('asset_id', 'like', "%{$this->search}%")
+                    ->orWhere('issue', 'like', "%{$this->search}%");
             });
         }
 

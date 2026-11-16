@@ -5,6 +5,8 @@ namespace App\Livewire\Assets;
 use App\Models\Asset;
 use App\Models\AuditLog;
 use App\Models\Transaction;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class AssetDetail extends Component
@@ -13,14 +15,27 @@ class AssetDetail extends Component
 
     public function mount(string $id)
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('assets.view'), 403);
+
         $this->assetId = $id;
     }
 
     public function render()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('assets.view'), 403);
+
         $asset = Asset::find($this->assetId);
 
-        if (!$asset) {
+        if ($actor->isDepartmentScoped()) {
+            abort_if($asset === null, 404);
+            abort_unless($actor->canAccessDepartment($asset->department), 403);
+        }
+
+        if (! $asset) {
             // Fallback sample asset
             $asset = new Asset([
                 'id' => $this->assetId,
@@ -44,6 +59,6 @@ class AssetDetail extends Component
         $auditLogs = AuditLog::where('object_id', $this->assetId)->orderByDesc('timestamp')->get();
 
         return view('livewire.assets.asset-detail', compact('asset', 'transactions', 'auditLogs'))
-            ->layout('layouts.app', ['title' => 'Asset Detail - ' . $this->assetId, 'breadcrumb' => 'IT Asset Management / Assets / ' . $this->assetId]);
+            ->layout('layouts.app', ['title' => 'Asset Detail - '.$this->assetId, 'breadcrumb' => 'IT Asset Management / Assets / '.$this->assetId]);
     }
 }

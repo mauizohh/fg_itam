@@ -6,19 +6,29 @@ use App\Models\Asset;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\AuditLogService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class AssignAsset extends Component
 {
     public string $assetId = 'IT-LAP-2026-00418';
+
     public string $assignTo = 'Sarah Lim';
+
     public string $department = 'Finance';
+
     public string $location = 'KL Office';
+
     public string $assignedDate = '2026-08-14';
+
     public string $expectedReturn = 'Not required';
+
     public string $condition = 'Good';
+
     public string $accessories = 'Charger, Dock';
+
     public string $remarks = 'Standard employee laptop assignment';
 
     public function mount()
@@ -30,6 +40,10 @@ class AssignAsset extends Component
 
     public function submit()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('transactions.manage'), 403);
+
         $this->validate([
             'assetId' => 'required',
             'assignTo' => 'required',
@@ -59,18 +73,23 @@ class AssignAsset extends Component
                 'condition_at_time' => $this->condition,
                 'accessories' => $this->accessories,
                 'remarks' => $this->remarks,
-                'performed_by' => 'Admin',
+                'performed_by' => $actor->name,
             ]);
 
             AuditLogService::record('Assign asset', 'Asset', $asset->id, $oldUser ?: 'IT Store', "Assigned to {$this->assignTo}");
         }
 
         session()->flash('success', "Asset {$this->assetId} assigned to {$this->assignTo} successfully!");
+
         return redirect()->route('assets.assigned');
     }
 
     public function render()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('transactions.manage'), 403);
+
         $availableAssets = Asset::whereIn('status', ['Available', 'Assigned'])->get();
         $employees = Employee::where('status', 'Active')->get();
         $departments = Department::all();

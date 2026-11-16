@@ -5,12 +5,14 @@
             <h1 class="text-2xl font-heading font-extrabold text-[#3b4048]">Software</h1>
             <p class="text-xs text-[#69717d] mt-0.5">Maintain the organization software catalog and associated installations or subscriptions.</p>
         </div>
-        <button wire:click="$set('showModal', true)" class="btn-primary">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Add Software</span>
-        </button>
+        @if (auth()->user()?->hasPermission('software.manage'))
+            <button wire:click="$set('showModal', true)" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add Software</span>
+            </button>
+        @endif
     </div>
 
     <!-- Filters Bar matching UI 18 -->

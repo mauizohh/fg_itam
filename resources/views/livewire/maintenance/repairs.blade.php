@@ -5,12 +5,14 @@
             <h1 class="text-2xl font-heading font-extrabold text-[#3b4048]">Repairs</h1>
             <p class="text-xs text-[#69717d] mt-0.5">Record incidents, repair vendors, costs and turnaround performance.</p>
         </div>
-        <button wire:click="$set('showModal', true)" class="btn-primary">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>New Repair</span>
-        </button>
+        @if (auth()->user()?->hasPermission('maintenance.manage'))
+            <button wire:click="$set('showModal', true)" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>New Repair</span>
+            </button>
+        @endif
     </div>
 
     <!-- Filters Bar matching UI 16 -->
@@ -49,7 +51,9 @@
                     <th>Issue</th>
                     <th>Opened</th>
                     <th>Vendor</th>
-                    <th>Cost</th>
+                    @if (auth()->user()?->canViewFinancialData())
+                        <th>Cost</th>
+                    @endif
                     <th>Status</th>
                 </tr>
             </thead>
@@ -65,7 +69,9 @@
                     <td>{{ $rpr->issue }}</td>
                     <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($rpr->opened_date)->format('d M') }}</td>
                     <td class="font-semibold text-gray-700">{{ $rpr->vendor }}</td>
-                    <td class="font-bold font-heading text-gray-800">RM {{ number_format($rpr->cost) }}</td>
+                    @if (auth()->user()?->canViewFinancialData())
+                        <td class="font-bold font-heading text-gray-800">RM {{ number_format($rpr->cost) }}</td>
+                    @endif
                     <td>
                         <span class="{{ $rpr->status_pill_class }}">{{ $rpr->status }}</span>
                     </td>

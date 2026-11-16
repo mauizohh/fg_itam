@@ -5,6 +5,8 @@ namespace App\Livewire\Assets;
 use App\Models\Asset;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -13,19 +15,26 @@ class AssignedAssets extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $assignedToFilter = 'All';
+
     public string $departmentFilter = 'All';
+
     public string $locationFilter = 'All';
 
     public function render()
     {
-        $query = Asset::where('status', 'Assigned');
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('assets.view'), 403);
 
-        if (!empty($this->search)) {
+        $query = $actor->scopeDepartmentQuery(Asset::where('status', 'Assigned'), 'department');
+
+        if (! empty($this->search)) {
             $query->where(function ($q) {
                 $q->where('id', 'like', "%{$this->search}%")
-                  ->orWhere('name', 'like', "%{$this->search}%")
-                  ->orWhere('assigned_user', 'like', "%{$this->search}%");
+                    ->orWhere('name', 'like', "%{$this->search}%")
+                    ->orWhere('assigned_user', 'like', "%{$this->search}%");
             });
         }
 
@@ -42,8 +51,8 @@ class AssignedAssets extends Component
         }
 
         $assignments = $query->orderByDesc('assigned_date')->paginate(15);
-        $departments = Department::all();
-        $employees = Employee::where('status', 'Active')->get();
+        $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->get();
+        $employees = $actor->scopeDepartmentQuery(Employee::where('status', 'Active'), 'department')->get();
 
         return view('livewire.assets.assigned-assets', compact('assignments', 'departments', 'employees'))
             ->layout('layouts.app', ['title' => 'Assigned Assets', 'breadcrumb' => 'IT Asset Management / Assets / Assigned']);

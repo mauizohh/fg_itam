@@ -5,12 +5,14 @@
             <h1 class="text-2xl font-heading font-extrabold text-[#3b4048]">Assets in Repair</h1>
             <p class="text-xs text-[#69717d] mt-0.5">Monitor devices that are unavailable due to repair or maintenance.</p>
         </div>
-        <a href="{{ route('maintenance.repairs') }}" class="btn-primary">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>New Repair Case</span>
-        </a>
+        @if (auth()->user()?->hasPermission('maintenance.manage'))
+            <a href="{{ route('maintenance.repairs') }}" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>New Repair Case</span>
+            </a>
+        @endif
     </div>
 
     <!-- 4 Summary Cards -->
@@ -30,11 +32,13 @@
             :value="$awaitingQuote"
             subtitle="Vendor response"
         />
-        <x-stat-card
-            title="Repair Spend"
-            :value="'RM ' . number_format($repairSpend)"
-            subtitle="This year"
-        />
+        @if (auth()->user()?->canViewFinancialData())
+            <x-stat-card
+                title="Repair Spend"
+                :value="'RM ' . number_format($repairSpend)"
+                subtitle="This year"
+            />
+        @endif
     </div>
 
     <!-- Table: Repair Queue -->

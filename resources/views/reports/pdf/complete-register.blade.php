@@ -32,7 +32,9 @@
                 <th>Serial Number</th>
                 <th>Assigned To</th>
                 <th>Location</th>
-                <th>Cost (MYR)</th>
+                @if ($showFinancial ?? true)
+                    <th>Cost (MYR)</th>
+                @endif
                 <th>Warranty</th>
                 <th>Status</th>
             </tr>
@@ -45,7 +47,9 @@
                 <td>{{ $asset->serial_number }}</td>
                 <td>{{ $asset->assigned_user ?: '-' }}</td>
                 <td>{{ $asset->assigned_location }}</td>
-                <td>RM {{ number_format($asset->purchase_cost, 2) }}</td>
+                @if ($showFinancial ?? true)
+                    <td>RM {{ number_format($asset->purchase_cost, 2) }}</td>
+                @endif
                 <td>{{ $asset->warranty_end ?: '-' }}</td>
                 <td>
                     <span class="badge badge-{{ strtolower($asset->status) }}">{{ $asset->status }}</span>

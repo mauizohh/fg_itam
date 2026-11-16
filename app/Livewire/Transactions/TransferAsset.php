@@ -6,18 +6,27 @@ use App\Models\Asset;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\AuditLogService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class TransferAsset extends Component
 {
     public string $assetId = 'IT-MON-2026-00391';
+
     public string $currentCustodian = 'Sarah Lim';
+
     public string $currentLocation = 'KL Office - Finance';
+
     public string $transferTo = 'Daniel Wong';
+
     public string $newDepartment = 'Engineering';
+
     public string $newLocation = 'KL Office - Engineering';
+
     public string $effectiveDate = '2026-08-15';
+
     public string $reason = 'Role transfer';
 
     public function mount()
@@ -34,6 +43,10 @@ class TransferAsset extends Component
 
     public function submit()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('transactions.manage'), 403);
+
         $this->validate([
             'assetId' => 'required',
             'transferTo' => 'required',
@@ -57,18 +70,23 @@ class TransferAsset extends Component
                 'to_location' => $this->newLocation,
                 'transaction_date' => $this->effectiveDate,
                 'remarks' => $this->reason,
-                'performed_by' => 'Admin',
+                'performed_by' => $actor->name,
             ]);
 
             AuditLogService::record('Transfer asset', 'Asset', $asset->id, "Transferred from {$oldCustodian}", "Transferred to {$this->transferTo}");
         }
 
         session()->flash('success', "Asset {$this->assetId} transferred to {$this->transferTo} successfully!");
+
         return redirect()->route('assets.assigned');
     }
 
     public function render()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('transactions.manage'), 403);
+
         $assets = Asset::all();
         $employees = Employee::where('status', 'Active')->get();
         $departments = Department::all();

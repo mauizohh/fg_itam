@@ -26,7 +26,9 @@
                 <th>Available</th>
                 <th>In Repair</th>
                 <th>Missing</th>
-                <th>Total Value (MYR)</th>
+                @if ($showFinancial ?? true)
+                    <th>Total Value (MYR)</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -38,7 +40,9 @@
                 <td>{{ $dept->available_count }}</td>
                 <td>{{ $dept->repair_count }}</td>
                 <td>{{ $dept->missing_count }}</td>
-                <td>RM {{ number_format($dept->purchase_value, 2) }}</td>
+                @if ($showFinancial ?? true)
+                    <td>RM {{ number_format($dept->purchase_value, 2) }}</td>
+                @endif
             </tr>
             @endforeach
         </tbody>

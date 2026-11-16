@@ -3,23 +3,35 @@
 namespace App\Livewire\Assets;
 
 use App\Models\Asset;
+use App\Models\User;
 use App\Services\AuditLogService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class RetiredAssets extends Component
 {
     public string $search = '';
+
     public string $dispositionFilter = 'All';
+
     public string $yearFilter = '2026';
 
     public bool $showRetireModal = false;
+
     public string $retireAssetId = '';
+
     public string $retireReason = 'End of life';
+
     public string $retireDisposition = 'Recycle';
+
     public string $retireSanitization = 'Verified';
 
     public function retireAsset()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('assets.dispose'), 403);
+
         $this->validate([
             'retireAssetId' => 'required|exists:fg_itam_assets,id',
             'retireReason' => 'required',
@@ -45,13 +57,17 @@ class RetiredAssets extends Component
 
     public function render()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('assets.retired.view'), 403);
+
         $query = Asset::where('status', 'Retired');
 
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where(function ($q) {
                 $q->where('id', 'like', "%{$this->search}%")
-                  ->orWhere('name', 'like', "%{$this->search}%")
-                  ->orWhere('retirement_reason', 'like', "%{$this->search}%");
+                    ->orWhere('name', 'like', "%{$this->search}%")
+                    ->orWhere('retirement_reason', 'like', "%{$this->search}%");
             });
         }
 

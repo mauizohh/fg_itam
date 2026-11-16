@@ -3,19 +3,29 @@
 namespace App\Livewire\Administration;
 
 use App\Models\Location;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class Locations extends Component
 {
     public string $selectedOffice = 'Kuala Lumpur Office';
 
-    public function selectOffice(string $office)
+    public function selectOffice(string $office): void
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('admin.locations'), 403);
+
         $this->selectedOffice = $office;
     }
 
     public function render()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('admin.locations'), 403);
+
         $locations = Location::where('office', $this->selectedOffice)->get();
 
         $assetsTotal = ($this->selectedOffice === 'Kuala Lumpur Office') ? 782 : 120;

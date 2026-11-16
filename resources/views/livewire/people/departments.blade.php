@@ -11,7 +11,7 @@
         <x-stat-card
             :title="$dept->name"
             :value="$dept->active_assets_count . ' assets'"
-            :subtitle="'RM ' . number_format($dept->purchase_value) . ' &bull; ' . $dept->exceptions_count . ' ' . Str::plural('exception', $dept->exceptions_count)"
+            :subtitle="(auth()->user()?->canViewFinancialData() ? 'RM ' . number_format($dept->purchase_value) . ' &bull; ' : '') . $dept->exceptions_count . ' ' . Str::plural('exception', $dept->exceptions_count)"
         />
         @endforeach
     </div>

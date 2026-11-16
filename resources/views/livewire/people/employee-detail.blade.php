@@ -28,11 +28,13 @@
             :value="count($assignedAssets) ?: 3"
             subtitle="Current custody"
         />
-        <x-stat-card
-            title="Asset Value"
-            :value="'RM ' . number_format($assetValue)"
-            subtitle="Purchase value"
-        />
+        @if (auth()->user()?->canViewFinancialData())
+            <x-stat-card
+                title="Asset Value"
+                :value="'RM ' . number_format($assetValue)"
+                subtitle="Purchase value"
+            />
+        @endif
         <x-stat-card
             title="Pending Returns"
             :value="$employee->pending_returns_count"

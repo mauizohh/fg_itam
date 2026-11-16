@@ -5,12 +5,14 @@
             <h1 class="text-2xl font-heading font-extrabold text-[#3b4048]">Renewals</h1>
             <p class="text-xs text-[#69717d] mt-0.5">Manage renewal dates, owners, costs and approval status for renewable services.</p>
         </div>
-        <button wire:click="$set('showModal', true)" class="btn-primary">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Add Renewal</span>
-        </button>
+        @if (auth()->user()?->hasPermission('software.manage'))
+            <button wire:click="$set('showModal', true)" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add Renewal</span>
+            </button>
+        @endif
     </div>
 
     <!-- Table: Renewal Calendar -->
@@ -22,7 +24,9 @@
                     <th>Service</th>
                     <th>Owner</th>
                     <th>Renewal Date</th>
-                    <th>Annual Cost</th>
+                    @if (auth()->user()?->canViewFinancialData())
+                        <th>Annual Cost</th>
+                    @endif
                     <th>Status</th>
                 </tr>
             </thead>
@@ -33,7 +37,9 @@
                     <td class="font-bold text-gray-800">{{ $ren->service_name }}</td>
                     <td>{{ $ren->owner }}</td>
                     <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($ren->renewal_date)->format('d M Y') }}</td>
-                    <td class="font-bold font-heading text-gray-800">RM {{ number_format($ren->annual_cost) }}</td>
+                    @if (auth()->user()?->canViewFinancialData())
+                        <td class="font-bold font-heading text-gray-800">RM {{ number_format($ren->annual_cost) }}</td>
+                    @endif
                     <td>
                         <span class="{{ $ren->status_pill_class }}">{{ $ren->status }}</span>
                     </td>

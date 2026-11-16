@@ -3,23 +3,36 @@
 namespace App\Livewire\Software;
 
 use App\Models\Software;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class SoftwareCatalog extends Component
 {
     public string $search = '';
+
     public string $typeFilter = 'All';
+
     public string $vendorFilter = 'All';
 
     public bool $showModal = false;
+
     public string $name = '';
+
     public string $vendor = '';
+
     public string $type = 'Subscription';
+
     public int $managedDevices = 0;
+
     public string $ownerDepartment = 'IT Operations';
 
     public function addSoftware()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('software.manage'), 403);
+
         $this->validate([
             'name' => 'required',
             'vendor' => 'required',
@@ -40,9 +53,13 @@ class SoftwareCatalog extends Component
 
     public function render()
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('software.view'), 403);
+
         $query = Software::query();
 
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where('name', 'like', "%{$this->search}%");
         }
         if ($this->typeFilter !== 'All') {

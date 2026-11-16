@@ -4,6 +4,8 @@ namespace App\Livewire\People;
 
 use App\Models\Asset;
 use App\Models\Employee;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class EmployeeDetail extends Component
@@ -12,21 +14,40 @@ class EmployeeDetail extends Component
 
     public function mount(int $id)
     {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('people.view'), 403);
+
         $this->employeeId = $id;
     }
 
     public function render()
     {
-        $employee = Employee::find($this->employeeId) ?? Employee::first();
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('people.view'), 403);
+
+        $employee = Employee::find($this->employeeId);
+        if ($actor->isDepartmentScoped()) {
+            abort_if($employee === null, 404);
+            abort_unless($actor->canAccessDepartment($employee->department), 403);
+        }
+
+        $employee = $employee ?? Employee::firstOrFail();
 
         // Assets assigned to this employee
-        $assignedAssets = Asset::where('assigned_user', $employee->name)
-            ->orWhere('assigned_user', 'like', "%{$employee->name}%")
+        $assignedAssets = Asset::query()
+            ->where(function ($query) use ($employee): void {
+                $query->where('assigned_user', $employee->name)
+                    ->orWhere('assigned_user', 'like', "%{$employee->name}%");
+            })
             ->get();
 
-        $assetValue = $assignedAssets->sum('purchase_cost') ?: 8900.00;
+        $assetValue = $actor->canViewFinancialData()
+            ? (float) $assignedAssets->sum('purchase_cost')
+            : 0.0;
 
         return view('livewire.people.employee-detail', compact('employee', 'assignedAssets', 'assetValue'))
-            ->layout('layouts.app', ['title' => 'Employee Detail - ' . $employee->name, 'breadcrumb' => 'IT Asset Management / People / ' . $employee->name]);
+            ->layout('layouts.app', ['title' => 'Employee Detail - '.$employee->name, 'breadcrumb' => 'IT Asset Management / People / '.$employee->name]);
     }
 }
