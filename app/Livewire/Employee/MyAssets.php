@@ -4,6 +4,7 @@ namespace App\Livewire\Employee;
 
 use App\Models\Asset;
 use App\Models\AssetAcknowledgement;
+use App\Models\AuditLog;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\AuditLogService;
@@ -130,6 +131,18 @@ class MyAssets extends Component
             ->limit(10)
             ->get();
 
+        $myAssetIds = $myAssets->pluck('id')->toArray();
+
+        $recentActivities = AuditLog::query()
+            ->forAssets()
+            ->forEmployee($user, $myAssetIds)
+            ->orderByDesc('timestamp')
+            ->limit(10)
+            ->get();
+
+        $activityAssetIds = $recentActivities->pluck('object_id')->unique()->filter()->values();
+        $activityAssets = Asset::whereIn('id', $activityAssetIds)->get()->keyBy('id');
+
         $returnObligationsCount = $myAssets->filter(
             fn (Asset $asset): bool => $asset->status === 'Loan' || ! empty($asset->expected_return_date)
         )->count();
@@ -139,6 +152,8 @@ class MyAssets extends Component
             'myAssets' => $myAssets,
             'acknowledgements' => $acknowledgements,
             'myTransactions' => $myTransactions,
+            'recentActivities' => $recentActivities,
+            'activityAssets' => $activityAssets,
             'returnObligationsCount' => $returnObligationsCount,
         ])->layout('layouts.app', [
             'title' => 'My Equipment',

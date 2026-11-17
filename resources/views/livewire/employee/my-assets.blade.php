@@ -22,25 +22,28 @@
     @endif
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="stat-card">
-            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Assigned Items</span>
-            <span class="text-2xl font-heading font-bold text-[#3b4048] mt-1">{{ $myAssets->count() }}</span>
-        </div>
-        <div class="stat-card">
-            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Acknowledged</span>
-            <span class="text-2xl font-heading font-bold text-emerald-700 mt-1">{{ $acknowledgements->count() }}</span>
-        </div>
-        <div class="stat-card">
-            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Return Obligations</span>
-            <span class="text-2xl font-heading font-bold text-amber-600 mt-1">{{ $returnObligationsCount }}</span>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-[18px]">
+        <x-stat-card
+            title="Assigned Items"
+            :value="number_format($myAssets->count())"
+            subtitle="Equipment under custody"
+        />
+        <x-stat-card
+            title="Acknowledged"
+            :value="number_format($acknowledgements->count())"
+            :subtitle="$myAssets->count() > 0 ? round(($acknowledgements->count() / $myAssets->count()) * 100) . '% confirmed' : 'All clear'"
+        />
+        <x-stat-card
+            title="Return Obligations"
+            :value="number_format($returnObligationsCount)"
+            :subtitle="$returnObligationsCount > 0 ? 'Action required upon due date' : 'No overdue loans'"
+        />
     </div>
 
     <!-- Assigned Equipment Table -->
     <x-table-section title="Equipment Under Your Custody" description="Acknowledge receipt to confirm custody and equipment return terms">
         <div class="overflow-x-auto">
-            <table class="itam-table">
+            <table class="w-full text-left itam-table">
                 <thead>
                     <tr>
                         <th>Asset ID</th>
@@ -94,10 +97,23 @@
                             </td>
                             <td>
                                 @if ($ack)
-                                    <span class="pill normal">Acknowledged</span>
-                                    <div class="text-[11px] text-gray-400 mt-0.5">{{ $ack->acknowledged_at?->format('Y-m-d H:i') }}</div>
+                                    <div class="flex items-center gap-2" title="Acknowledged on {{ $ack->acknowledged_at?->format('Y-m-d H:i') }}">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 shadow-2xs shrink-0" title="Acknowledged">
+                                            <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </span>
+                                        <span class="text-[11px] text-gray-600 font-mono">{{ $ack->acknowledged_at?->format('Y-m-d H:i') }}</span>
+                                    </div>
                                 @else
-                                    <span class="pill high">Pending</span>
+                                    <div class="flex items-center gap-2" title="Pending Receipt Acknowledgement">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-700 shadow-2xs shrink-0" title="Not Acknowledged">
+                                            <svg class="w-4 h-4 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </span>
+                                        <span class="text-xs font-semibold text-red-600">Pending</span>
+                                    </div>
                                 @endif
                             </td>
                             <td class="text-right">
@@ -148,10 +164,76 @@
         </div>
     @endif
 
+    <!-- Recent Activity Table (Asset monitoring for employee) -->
+    <x-table-section title="Recent Activity" description="Audited asset lifecycle events, assignments, transfers, and maintenance on your equipment">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left itam-table">
+                <thead>
+                    <tr>
+                        <th class="w-28">Time</th>
+                        <th>Asset</th>
+                        <th>Action</th>
+                        <th class="w-44">Action By</th>
+                        <th class="w-44">Employee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($recentActivities as $activity)
+                        @php
+                            $asset = $activityAssets->get($activity->object_id);
+                            $employeeName = $activity->resolveEmployeeName($asset);
+                        @endphp
+                        <tr>
+                            <td class="font-bold text-gray-700 text-xs whitespace-nowrap">
+                                {{ \Carbon\Carbon::parse($activity->timestamp)->format('d M H:i') }}
+                            </td>
+                            <td>
+                                @if (auth()->user()?->hasPermission('assets.view'))
+                                    <a href="{{ route('assets.detail', $activity->object_id) }}" class="text-[#a92d31] hover:underline font-bold font-heading">
+                                        {{ $activity->object_id }}
+                                    </a>
+                                @else
+                                    <span class="font-mono font-bold text-[#a92d31]">{{ $activity->object_id }}</span>
+                                @endif
+                                @if ($asset)
+                                    <div class="text-[11px] text-gray-500 truncate max-w-xs">{{ $asset->name }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="font-semibold text-gray-800 text-xs block">{{ $activity->action }}</span>
+                                @if ($activity->after_state)
+                                    <span class="text-[11px] text-gray-500 font-mono block truncate max-w-sm">{{ $activity->after_state }}</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold whitespace-nowrap">
+                                    {{ $activity->clean_user }}
+                                </span>
+                            </td>
+                            <td>
+                                @if ($employeeName !== '—')
+                                    <span class="font-medium text-gray-900 text-xs">{{ $employeeName }}</span>
+                                @else
+                                    <span class="text-gray-400 text-xs">—</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-6 text-xs text-gray-400">
+                                No recent activity recorded for your assigned equipment.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </x-table-section>
+
     <!-- Recent Custody History -->
     <x-table-section title="My Recent Equipment Transactions" description="Check-in, assignment, loan, and transfer activity involving you">
         <div class="overflow-x-auto">
-            <table class="itam-table">
+            <table class="w-full text-left itam-table">
                 <thead>
                     <tr>
                         <th>Date</th>

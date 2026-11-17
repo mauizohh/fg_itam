@@ -3,6 +3,7 @@
 namespace App\Livewire\People;
 
 use App\Models\Asset;
+use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +48,24 @@ class EmployeeDetail extends Component
             ? (float) $assignedAssets->sum('purchase_cost')
             : 0.0;
 
-        return view('livewire.people.employee-detail', compact('employee', 'assignedAssets', 'assetValue'))
+        $assetIds = $assignedAssets->pluck('id')->toArray();
+        $recentActivities = AuditLog::query()
+            ->forAssets()
+            ->where(function ($q) use ($assetIds, $employee): void {
+                if (! empty($assetIds)) {
+                    $q->whereIn('object_id', $assetIds);
+                }
+                $q->orWhere('after_state', 'like', "%{$employee->name}%")
+                    ->orWhere('before_state', 'like', "%{$employee->name}%");
+            })
+            ->orderByDesc('timestamp')
+            ->limit(10)
+            ->get();
+
+        $activityAssetIds = $recentActivities->pluck('object_id')->unique()->filter()->values();
+        $activityAssets = Asset::whereIn('id', $activityAssetIds)->get()->keyBy('id');
+
+        return view('livewire.people.employee-detail', compact('employee', 'assignedAssets', 'assetValue', 'recentActivities', 'activityAssets'))
             ->layout('layouts.app', ['title' => 'Employee Detail - '.$employee->name, 'breadcrumb' => 'IT Asset Management / People / '.$employee->name]);
     }
 }

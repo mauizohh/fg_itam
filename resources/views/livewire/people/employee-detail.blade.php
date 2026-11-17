@@ -122,4 +122,70 @@
             </tbody>
         </table>
     </x-table-section>
+
+    <!-- Recent Activity Table for Employee Assets -->
+    <x-table-section title="Recent Activity" description="Audited asset lifecycle events, assignments, transfers, and maintenance for {{ $employee->name }}">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left itam-table">
+                <thead>
+                    <tr>
+                        <th class="w-28">Time</th>
+                        <th>Asset</th>
+                        <th>Action</th>
+                        <th class="w-44">Action By</th>
+                        <th class="w-44">Employee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($recentActivities as $activity)
+                        @php
+                            $asset = $activityAssets->get($activity->object_id);
+                            $employeeName = $activity->resolveEmployeeName($asset);
+                        @endphp
+                        <tr>
+                            <td class="font-bold text-gray-700 text-xs whitespace-nowrap">
+                                {{ \Carbon\Carbon::parse($activity->timestamp)->format('d M H:i') }}
+                            </td>
+                            <td>
+                                @if (auth()->user()?->hasPermission('assets.view'))
+                                    <a href="{{ route('assets.detail', $activity->object_id) }}" class="text-[#a92d31] hover:underline font-bold font-heading">
+                                        {{ $activity->object_id }}
+                                    </a>
+                                @else
+                                    <span class="font-mono font-bold text-[#a92d31]">{{ $activity->object_id }}</span>
+                                @endif
+                                @if ($asset)
+                                    <div class="text-[11px] text-gray-500 truncate max-w-xs">{{ $asset->name }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="font-semibold text-gray-800 text-xs block">{{ $activity->action }}</span>
+                                @if ($activity->after_state)
+                                    <span class="text-[11px] text-gray-500 font-mono block truncate max-w-sm">{{ $activity->after_state }}</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold whitespace-nowrap">
+                                    {{ $activity->clean_user }}
+                                </span>
+                            </td>
+                            <td>
+                                @if ($employeeName !== '—')
+                                    <span class="font-medium text-gray-900 text-xs">{{ $employeeName }}</span>
+                                @else
+                                    <span class="text-gray-400 text-xs">—</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-6 text-xs text-gray-400">
+                                No recent activity recorded for assets under this employee.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </x-table-section>
 </div>

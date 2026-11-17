@@ -103,86 +103,108 @@
         </div>
 
         <!-- Upcoming Actions -->
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <h3 class="font-heading font-bold text-base text-[#3b4048] mb-4">Quick Navigation</h3>
-            <div class="space-y-3.5">
-                @if (auth()->user()?->hasPermission('maintenance.view'))
-                    <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition">
-                        <div class="flex items-center gap-3">
-                            <span class="w-7 h-7 rounded-lg bg-red-100 text-[#a92d31] font-heading font-extrabold flex items-center justify-center text-xs">{{ $expiringWarranties }}</span>
-                            <span class="text-xs text-gray-700 font-medium">Tracked warranty records</span>
+        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-heading font-bold text-base text-[#3b4048]">Upcoming Actions</h3>
+                    <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Priority Summary</span>
+                </div>
+                <div class="space-y-3">
+                    @forelse ($upcomingActions as $action)
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 hover:shadow-xs transition gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="w-8 h-8 rounded-lg {{ $action['badge_class'] }} font-heading font-extrabold flex items-center justify-center text-xs shrink-0 shadow-xs">
+                                    {{ $action['count'] }}
+                                </span>
+                                <div class="min-w-0">
+                                    <h4 class="text-xs font-bold text-[#3b4048] truncate">{{ $action['title'] }}</h4>
+                                    <p class="text-[11px] text-gray-500 truncate">{{ $action['description'] }}</p>
+                                </div>
+                            </div>
+                            <a href="{{ $action['route'] }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#a92d31] hover:underline px-2.5 py-1 rounded-lg hover:bg-red-50 transition shrink-0">
+                                <span>See More</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
                         </div>
-                        <a href="{{ route('maintenance.warranty') }}" class="text-[11px] font-bold text-[#a92d31] hover:underline">View</a>
-                    </div>
-                @endif
-                @if (auth()->user()?->hasPermission('transactions.manage'))
-                    <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition">
-                        <div class="flex items-center gap-3">
-                            <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 font-heading font-extrabold flex items-center justify-center text-xs">{{ $attentionNeeded }}</span>
-                            <span class="text-xs text-gray-700 font-medium">Loan &amp; return workflows</span>
+                    @empty
+                        <div class="text-center py-8 text-xs text-gray-400">
+                            No upcoming actions requiring priority attention at this time.
                         </div>
-                        <a href="{{ route('transactions.loan') }}" class="text-[11px] font-bold text-[#a92d31] hover:underline">View</a>
-                    </div>
-                @endif
-                @if (auth()->user()?->hasPermission('software.view'))
-                    <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition">
-                        <div class="flex items-center gap-3">
-                            <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 font-heading font-extrabold flex items-center justify-center text-xs">&rarr;</span>
-                            <span class="text-xs text-gray-700 font-medium">Software renewals &amp; licenses</span>
-                        </div>
-                        <a href="{{ route('software.renewals') }}" class="text-[11px] font-bold text-[#a92d31] hover:underline">View</a>
-                    </div>
-                @endif
-                @if (auth()->user()?->hasPermission('my_assets.view'))
-                    <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition">
-                        <div class="flex items-center gap-3">
-                            <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 font-heading font-extrabold flex items-center justify-center text-xs">&bull;</span>
-                            <span class="text-xs text-gray-700 font-medium">My assigned equipment</span>
-                        </div>
-                        <a href="{{ route('my-assets') }}" class="text-[11px] font-bold text-[#a92d31] hover:underline">View</a>
-                    </div>
-                @endif
+                    @endforelse
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Recent Activity Table -->
-    @if ($recentActivities->isNotEmpty())
-        <x-table-section title="Recent Activity">
-            @if (auth()->user()?->hasPermission('admin.audit_logs'))
-                <x-slot:actions>
-                    <a href="{{ route('admin.audit-logs') }}" class="text-xs font-bold text-[#a92d31] hover:underline">View All Logs</a>
-                </x-slot:actions>
-            @endif
+    <x-table-section title="Recent Activity" description="Audited asset lifecycle events, assignments, transfers, and maintenance">
+        @if (auth()->user()?->hasPermission('admin.audit_logs'))
+            <x-slot:actions>
+                <a href="{{ route('admin.audit-logs') }}" class="text-xs font-bold text-[#a92d31] hover:underline">View All Logs</a>
+            </x-slot:actions>
+        @endif
 
-            <table class="w-full text-left itam-table">
-                <thead>
+        <table class="w-full text-left itam-table">
+            <thead>
+                <tr>
+                    <th class="w-28">Time</th>
+                    <th>Asset</th>
+                    <th>Action</th>
+                    <th class="w-44">Action By</th>
+                    <th class="w-44">Employee</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($recentActivities as $activity)
+                    @php
+                        $asset = $activityAssets->get($activity->object_id);
+                        $employeeName = $activity->resolveEmployeeName($asset);
+                    @endphp
                     <tr>
-                        <th class="w-32">Time</th>
-                        <th>Object</th>
-                        <th>Action</th>
-                        <th class="w-40">User</th>
+                        <td class="font-bold text-gray-700 text-xs whitespace-nowrap">
+                            {{ \Carbon\Carbon::parse($activity->timestamp)->format('d M H:i') }}
+                        </td>
+                        <td>
+                            @if (auth()->user()?->hasPermission('assets.view'))
+                                <a href="{{ route('assets.detail', $activity->object_id) }}" class="text-[#a92d31] hover:underline font-bold font-heading">
+                                    {{ $activity->object_id }}
+                                </a>
+                            @else
+                                <span class="font-mono font-bold text-[#a92d31]">{{ $activity->object_id }}</span>
+                            @endif
+                            @if ($asset)
+                                <div class="text-[11px] text-gray-500 truncate max-w-xs">{{ $asset->name }}</div>
+                            @endif
+                        </td>
+                        <td>
+                            <span class="font-semibold text-gray-800 text-xs block">{{ $activity->action }}</span>
+                            @if ($activity->after_state)
+                                <span class="text-[11px] text-gray-500 font-mono block truncate max-w-sm">{{ $activity->after_state }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            <span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold whitespace-nowrap">
+                                {{ $activity->clean_user }}
+                            </span>
+                        </td>
+                        <td>
+                            @if ($employeeName !== '—')
+                                <span class="font-medium text-gray-900 text-xs">{{ $employeeName }}</span>
+                            @else
+                                <span class="text-gray-400 text-xs">—</span>
+                            @endif
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach ($recentActivities as $activity)
-                        <tr>
-                            <td class="font-bold text-gray-700 text-xs">{{ \Carbon\Carbon::parse($activity->timestamp)->format('d M H:i') }}</td>
-                            <td>
-                                @if ($activity->object_type === 'Asset')
-                                    <a href="{{ route('assets.detail', $activity->object_id) }}" class="text-[#a92d31] hover:underline font-bold font-heading">
-                                        {{ $activity->object_id }}
-                                    </a>
-                                @else
-                                    <span class="font-mono text-xs text-gray-700">{{ $activity->object_type }} #{{ $activity->object_id }}</span>
-                                @endif
-                            </td>
-                            <td class="text-xs text-gray-700">{{ $activity->action }}@if($activity->after_state) &mdash; {{ $activity->after_state }}@endif</td>
-                            <td><span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold">{{ $activity->user }}</span></td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </x-table-section>
-    @endif
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-6 text-xs text-gray-400">
+                            No recent asset activity recorded within your scope.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </x-table-section>
 </div>

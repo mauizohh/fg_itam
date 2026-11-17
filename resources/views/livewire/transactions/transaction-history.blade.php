@@ -40,7 +40,7 @@
     <!-- Ledger Table -->
     <x-table-section title="Transaction Ledger" description="Verified chain-of-custody movement history">
         <div class="overflow-x-auto">
-            <table class="itam-table">
+            <table class="w-full text-left itam-table">
                 <thead>
                     <tr>
                         <th>Date</th>

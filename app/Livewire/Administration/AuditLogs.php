@@ -8,9 +8,12 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class AuditLogs extends Component
 {
+    use WithPagination;
+
     public string $search = '';
 
     public string $userFilter = 'All';
@@ -18,6 +21,26 @@ class AuditLogs extends Component
     public string $actionFilter = 'All';
 
     public string $dateFilter = 'All Time';
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingUserFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingActionFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateFilter(): void
+    {
+        $this->resetPage();
+    }
 
     public function render(): View
     {
@@ -50,7 +73,7 @@ class AuditLogs extends Component
             $query->where('timestamp', '>=', Carbon::now()->startOfWeek());
         }
 
-        $logs = $query->orderByDesc('timestamp')->limit(200)->get();
+        $logs = $query->orderByDesc('timestamp')->paginate(15);
 
         $availableUsers = AuditLog::query()
             ->whereNotNull('user')

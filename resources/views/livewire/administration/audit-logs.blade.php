@@ -81,5 +81,9 @@
                 @endforelse
             </tbody>
         </table>
+
+        <x-slot:pagination>
+            {{ $logs->links() }}
+        </x-slot:pagination>
     </x-table-section>
 </div>
