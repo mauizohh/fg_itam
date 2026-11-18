@@ -45,7 +45,7 @@
                 <td><strong>{{ $asset->id }}</strong></td>
                 <td>{{ $asset->name }}</td>
                 <td>{{ $asset->serial_number }}</td>
-                <td>{{ $asset->assigned_user ?: '-' }}</td>
+                <td>{{ $asset->display_assigned_user ?: '-' }}</td>
                 <td>{{ $asset->assigned_location }}</td>
                 @if ($showFinancial ?? true)
                     <td>RM {{ number_format($asset->purchase_cost, 2) }}</td>

@@ -12,7 +12,7 @@ class AuditLogService
     {
         $resolvedUser = $user;
         if ($resolvedUser === null || trim($resolvedUser) === '') {
-            $resolvedUser = Auth::user()?->name ?? 'System';
+            $resolvedUser = Auth::user()?->display_name ?? 'System';
         }
 
         try {

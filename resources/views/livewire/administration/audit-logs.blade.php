@@ -16,7 +16,7 @@
             <select wire:model.live="userFilter" class="itam-select text-xs h-10">
                 <option value="All">All Users</option>
                 @foreach ($availableUsers as $uName)
-                    <option value="{{ $uName }}">{{ $uName }}</option>
+                    <option value="{{ $uName }}">{{ \App\Models\AuditLog::cleanName($uName) }}</option>
                 @endforeach
             </select>
         </div>
@@ -58,7 +58,7 @@
                     <td class="text-xs text-gray-600 font-medium">
                         {{ \Carbon\Carbon::parse($log->timestamp)->format('d M H:i') }}
                     </td>
-                    <td class="font-semibold text-gray-900">{{ $log->user }}</td>
+                    <td class="font-semibold text-gray-900">{{ $log->clean_user }}</td>
                     <td>
                         <span class="font-bold text-gray-800">{{ $log->action }}</span>
                     </td>

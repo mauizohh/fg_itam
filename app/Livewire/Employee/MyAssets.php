@@ -64,7 +64,7 @@ class MyAssets extends Component
                 'usr_id' => $user->usr_id,
             ],
             [
-                'employee_name' => $user->name,
+                'employee_name' => $user->display_name,
                 'status' => 'Acknowledged',
                 'acknowledged_at' => now(),
                 'remarks' => trim($this->remarks) !== '' ? trim($this->remarks) : 'Equipment receipt & return obligation acknowledged.',
@@ -76,7 +76,7 @@ class MyAssets extends Component
             'Asset',
             $asset->id,
             'Pending Acknowledgement',
-            "Acknowledged by {$user->name}"
+            "Acknowledged by {$user->display_name}"
         );
 
         $this->selectedAssetId = null;
@@ -93,6 +93,7 @@ class MyAssets extends Component
     {
         return array_values(array_unique(array_filter([
             trim($user->name),
+            trim($user->display_name),
             trim($user->username),
         ])));
     }

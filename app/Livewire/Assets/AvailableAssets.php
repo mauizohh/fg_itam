@@ -14,7 +14,7 @@ class AvailableAssets extends Component
 
     public string $categoryFilter = 'All';
 
-    public string $locationFilter = 'IT Store';
+    public string $locationFilter = '';
 
     public function render()
     {

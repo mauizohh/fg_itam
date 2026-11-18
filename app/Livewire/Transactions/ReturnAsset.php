@@ -3,6 +3,7 @@
 namespace App\Livewire\Transactions;
 
 use App\Models\Asset;
+use App\Models\Location;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\AuditLogService;
@@ -17,7 +18,7 @@ class ReturnAsset extends Component
 
     public string $returnDate = '2026-08-14';
 
-    public string $returnLocation = 'IT Store';
+    public string $returnLocation = 'Jitra Office';
 
     public string $condition = 'Good';
 
@@ -53,6 +54,7 @@ class ReturnAsset extends Component
         $this->validate([
             'assetId' => 'required',
             'returnedBy' => 'required',
+            'returnLocation' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
         ]);
 
         $asset = Asset::find($this->assetId);
@@ -79,7 +81,7 @@ class ReturnAsset extends Component
                 'checklist_charger' => $this->checkCharger,
                 'checklist_data_wiped' => $this->checkDataHandling,
                 'remarks' => $this->remarks,
-                'performed_by' => $actor->name,
+                'performed_by' => $actor->display_name,
             ]);
 
             AuditLogService::record('Return asset', 'Asset', $asset->id, "Assigned to {$this->returnedBy}", "Returned to {$this->returnLocation}");

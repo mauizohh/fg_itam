@@ -58,6 +58,7 @@ class TransactionHistory extends Component
         if ($user->hasRole(ItamRole::Employee)) {
             $names = array_values(array_unique(array_filter([
                 strtolower(trim($user->name)),
+                strtolower(trim($user->display_name)),
                 strtolower(trim($user->username)),
             ])));
             $query->where(function ($q) use ($names): void {

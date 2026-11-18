@@ -47,11 +47,9 @@
             <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</label>
             <select wire:model.live="locationFilter" class="itam-select text-xs h-10">
                 <option value="All">All</option>
-                <option value="KL Office">KL Office</option>
-                <option value="IT Store">IT Store</option>
-                <option value="Server Room">Server Room</option>
-                <option value="Penang Office">Penang Office</option>
-                <option value="Repair Vendor">Repair Vendor</option>
+                @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
+                    <option value="{{ $office }}">{{ $office }}</option>
+                @endforeach
             </select>
         </div>
     </div>
@@ -87,7 +85,7 @@
                         <div class="text-[11px] text-gray-400 font-normal">{{ $asset->category_name }} &bull; {{ $asset->brand }}</div>
                     </td>
                     <td class="font-mono text-xs text-gray-600">{{ $asset->serial_number }}</td>
-                    <td>{{ $asset->assigned_user ?: '-' }}</td>
+                    <td>{{ $asset->display_assigned_user ?: '-' }}</td>
                     <td>{{ $asset->assigned_location }}</td>
                     <td>
                         <span class="{{ $asset->status_pill_class }}">{{ $asset->status }}</span>
@@ -170,12 +168,11 @@
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Initial Location</label>
                         <select wire:model="newLocation" class="itam-select">
-                            <option value="IT Store">IT Store</option>
-                            <option value="KL Office - Level 5">KL Office - Level 5</option>
-                            <option value="KL Office - Level 6">KL Office - Level 6</option>
-                            <option value="Server Room">Server Room</option>
-                            <option value="Penang Office">Penang Office</option>
+                            @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
+                                <option value="{{ $office }}">{{ $office }}</option>
+                            @endforeach
                         </select>
+                        @error('newLocation') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Initial Status</label>

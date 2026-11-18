@@ -36,7 +36,7 @@
                 <td>{{ $asset->warranty_provider ?: 'Standard' }}</td>
                 <td><strong style="color:#b91c1c;">{{ $asset->warranty_end }}</strong></td>
                 <td>{{ $asset->status }}</td>
-                <td>{{ $asset->assigned_user ?: 'IT Store' }}</td>
+                <td>{{ $asset->display_assigned_user ?: 'Jitra Office' }}</td>
             </tr>
             @endforeach
         </tbody>

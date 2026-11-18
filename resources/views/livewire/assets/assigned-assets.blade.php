@@ -34,9 +34,9 @@
             <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</label>
             <select wire:model.live="locationFilter" class="itam-select text-xs h-10">
                 <option value="All">All Locations</option>
-                <option value="KL Office">KL Office</option>
-                <option value="Server Room">Server Room</option>
-                <option value="Penang Office">Penang Office</option>
+                @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
+                    <option value="{{ $office }}">{{ $office }}</option>
+                @endforeach
             </select>
         </div>
     </div>
@@ -71,7 +71,7 @@
                         <div class="font-bold text-gray-800">{{ $item->name }}</div>
                         <div class="text-[11px] text-gray-400">{{ $item->serial_number }}</div>
                     </td>
-                    <td class="font-semibold text-gray-800">{{ $item->assigned_user }}</td>
+                    <td class="font-semibold text-gray-800">{{ $item->display_assigned_user }}</td>
                     <td>{{ $item->department ?: 'General' }}</td>
                     <td class="text-xs text-gray-600">{{ $item->assigned_date ? \Carbon\Carbon::parse($item->assigned_date)->format('d M Y') : '10 Aug 2026' }}</td>
                     <td>

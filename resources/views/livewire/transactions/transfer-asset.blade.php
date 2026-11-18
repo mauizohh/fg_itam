@@ -48,7 +48,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block font-bold text-gray-700 mb-1.5">New Location</label>
-                    <input type="text" wire:model="newLocation" placeholder="e.g. KL Office - Engineering" class="itam-input h-11">
+                    <select wire:model="newLocation" class="itam-select h-11">
+                        @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
+                            <option value="{{ $office }}">{{ $office }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label class="block font-bold text-gray-700 mb-1.5">Effective Date</label>

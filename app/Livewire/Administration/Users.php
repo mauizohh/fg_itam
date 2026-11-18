@@ -80,7 +80,7 @@ class Users extends Component
 
         $this->editUsrId = $usrId;
         $this->editLoginName = (string) ($row->usr_login_name ?? '');
-        $this->editUserName = $fullName !== '' ? $fullName : ($this->editLoginName ?: "User #{$usrId}");
+        $this->editUserName = User::cleanDisplayName($fullName, $this->editLoginName ?: "User #{$usrId}");
         $this->editRole = ($override && ItamRole::tryFromValue($override->role) !== null)
             ? (string) $override->role
             : 'auto';
@@ -199,7 +199,7 @@ class Users extends Component
             $usrId = (int) $row->usr_id;
             $loginName = (string) ($row->usr_login_name ?? '');
             $fullName = trim(((string) ($row->first_name ?? '')).' '.((string) ($row->last_name ?? '')));
-            $displayName = $fullName !== '' ? $fullName : ($loginName !== '' ? $loginName : "User #{$usrId}");
+            $displayName = User::cleanDisplayName($fullName, $loginName !== '' ? $loginName : "User #{$usrId}");
             $resolved = $resolver->resolveForUser($usrId, $loginName);
             $effectiveActive = ((int) $row->usr_valid === 1) && $resolved['is_active'];
 

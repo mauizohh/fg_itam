@@ -14,7 +14,7 @@
                 <label class="block font-bold text-gray-700 mb-1.5">Asset *</label>
                 <select wire:model="assetId" class="itam-select h-11" required>
                     @foreach($assignedAssets as $ast)
-                        <option value="{{ $ast->id }}">{{ $ast->id }} - {{ $ast->name }} (Assigned to: {{ $ast->assigned_user }})</option>
+                        <option value="{{ $ast->id }}">{{ $ast->id }} - {{ $ast->name }} (Assigned to: {{ $ast->display_assigned_user }})</option>
                     @endforeach
                 </select>
             </div>
@@ -34,9 +34,9 @@
                 <div>
                     <label class="block font-bold text-gray-700 mb-1.5">Return Location</label>
                     <select wire:model="returnLocation" class="itam-select h-11">
-                        <option value="IT Store">IT Store</option>
-                        <option value="KL Office">KL Office</option>
-                        <option value="Server Room">Server Room</option>
+                        @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
+                            <option value="{{ $office }}">{{ $office }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div>

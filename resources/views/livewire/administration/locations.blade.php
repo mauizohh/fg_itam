@@ -16,26 +16,15 @@
                     <span>Malaysia</span>
                 </div>
                 <div class="pl-4 space-y-1.5 border-l-2 border-gray-100 ml-1">
-                    <div>
-                        <button wire:click="selectOffice('Kuala Lumpur Office')"
-                                class="flex items-center gap-1.5 font-bold {{ $selectedOffice === 'Kuala Lumpur Office' ? 'text-[#a92d31]' : 'text-gray-700' }} hover:text-[#a92d31] transition">
-                            <span>&blacktriangledown;</span>
-                            <span>Kuala Lumpur Office</span>
-                        </button>
-                        <div class="pl-4 py-1 space-y-1 text-gray-500">
-                            <div class="hover:text-gray-900 cursor-pointer">Level 5 - Finance</div>
-                            <div class="hover:text-gray-900 cursor-pointer">Level 6 - Engineering</div>
-                            <div class="hover:text-gray-900 cursor-pointer">IT Store</div>
-                            <div class="hover:text-gray-900 cursor-pointer">Server Room</div>
+                    @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
+                        <div>
+                            <button wire:click="selectOffice('{{ $office }}')"
+                                    class="flex items-center gap-1.5 font-bold {{ $selectedOffice === $office ? 'text-[#a92d31]' : 'text-gray-700' }} hover:text-[#a92d31] transition">
+                                <span>{{ $selectedOffice === $office ? '▾' : '+' }}</span>
+                                <span>{{ $office }}</span>
+                            </button>
                         </div>
-                    </div>
-                    <div>
-                        <button wire:click="selectOffice('Penang Office')"
-                                class="flex items-center gap-1.5 font-bold {{ $selectedOffice === 'Penang Office' ? 'text-[#a92d31]' : 'text-gray-700' }} hover:text-[#a92d31] transition">
-                            <span>+</span>
-                            <span>Penang Office</span>
-                        </button>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>

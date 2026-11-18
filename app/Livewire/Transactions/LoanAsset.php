@@ -58,7 +58,7 @@ class LoanAsset extends Component
                 'condition_at_time' => $this->condition,
                 'accessories' => $this->accessories,
                 'remarks' => $this->notes,
-                'performed_by' => $actor->name,
+                'performed_by' => $actor->display_name,
             ]);
 
             AuditLogService::record('Loan asset', 'Asset', $asset->id, 'Available', "Loaned to {$this->borrower} (Due: {$this->dueDate})");

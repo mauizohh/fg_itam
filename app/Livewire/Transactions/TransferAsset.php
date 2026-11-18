@@ -5,6 +5,7 @@ namespace App\Livewire\Transactions;
 use App\Models\Asset;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Location;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\AuditLogService;
@@ -17,13 +18,13 @@ class TransferAsset extends Component
 
     public string $currentCustodian = 'Sarah Lim';
 
-    public string $currentLocation = 'KL Office - Finance';
+    public string $currentLocation = 'Jitra Office';
 
     public string $transferTo = 'Daniel Wong';
 
     public string $newDepartment = 'Engineering';
 
-    public string $newLocation = 'KL Office - Engineering';
+    public string $newLocation = 'Kulim Office';
 
     public string $effectiveDate = '2026-08-15';
 
@@ -35,8 +36,8 @@ class TransferAsset extends Component
             $this->assetId = $id;
             $asset = Asset::find($id);
             if ($asset) {
-                $this->currentCustodian = $asset->assigned_user ?: 'Sarah Lim';
-                $this->currentLocation = $asset->assigned_location ?: 'KL Office - Finance';
+                $this->currentCustodian = $asset->display_assigned_user ?: 'Sarah Lim';
+                $this->currentLocation = $asset->assigned_location ?: 'Jitra Office';
             }
         }
     }
@@ -50,6 +51,7 @@ class TransferAsset extends Component
         $this->validate([
             'assetId' => 'required',
             'transferTo' => 'required',
+            'newLocation' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
         ]);
 
         $asset = Asset::find($this->assetId);
@@ -70,7 +72,7 @@ class TransferAsset extends Component
                 'to_location' => $this->newLocation,
                 'transaction_date' => $this->effectiveDate,
                 'remarks' => $this->reason,
-                'performed_by' => $actor->name,
+                'performed_by' => $actor->display_name,
             ]);
 
             AuditLogService::record('Transfer asset', 'Asset', $asset->id, "Transferred from {$oldCustodian}", "Transferred to {$this->transferTo}");

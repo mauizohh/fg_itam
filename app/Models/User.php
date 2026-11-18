@@ -82,11 +82,38 @@ class User implements Authenticatable
     }
 
     /**
+     * Strip parenthetical or bracketed category suffixes (e.g. "(Test Admin)", "(Test Staff)") from a display name.
+     */
+    public static function cleanDisplayName(?string $raw, string $fallback = ''): string
+    {
+        if ($raw === null || trim($raw) === '') {
+            return trim($fallback);
+        }
+
+        $cleaned = preg_replace('/\s*[\(\[].*?[\)\]]/', '', trim($raw)) ?? trim($raw);
+        $cleaned = trim(preg_replace('/\s+/', ' ', $cleaned) ?? $cleaned);
+
+        if ($cleaned !== '') {
+            return $cleaned;
+        }
+
+        return trim($fallback) !== '' ? trim($fallback) : trim($raw);
+    }
+
+    /**
+     * Get the user's display name without category/role suffixes.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return self::cleanDisplayName($this->name, $this->username);
+    }
+
+    /**
      * Get two-letter uppercase initials for avatar display.
      */
     public function getInitialsAttribute(): string
     {
-        $parts = array_values(array_filter(explode(' ', trim($this->name))));
+        $parts = array_values(array_filter(explode(' ', trim($this->getDisplayNameAttribute()))));
         $initials = '';
         foreach ($parts as $part) {
             $initials .= strtoupper(substr($part, 0, 1));
@@ -220,6 +247,7 @@ class User implements Authenticatable
     {
         return match ($name) {
             'id' => $this->usr_id,
+            'display_name' => $this->getDisplayNameAttribute(),
             'role' => $this->getRoleAttribute(),
             'role_label' => $this->getRoleLabelAttribute(),
             'initials' => $this->getInitialsAttribute(),

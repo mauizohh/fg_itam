@@ -34,11 +34,11 @@
             <tr>
                 <td><strong>{{ $tx->type }}</strong></td>
                 <td>{{ $tx->asset_id }}</td>
-                <td>{{ $tx->from_user ?: '-' }}</td>
-                <td>{{ $tx->to_user ?: '-' }}</td>
+                <td>{{ $tx->from_user ? \App\Models\User::cleanDisplayName($tx->from_user) : '-' }}</td>
+                <td>{{ $tx->to_user ? \App\Models\User::cleanDisplayName($tx->to_user) : '-' }}</td>
                 <td>{{ $tx->to_location ?: $tx->from_location }}</td>
                 <td>{{ $tx->transaction_date }}</td>
-                <td>{{ $tx->performed_by }}</td>
+                <td>{{ $tx->performed_by ? \App\Models\User::cleanDisplayName($tx->performed_by) : '-' }}</td>
             </tr>
             @empty
             <tr>

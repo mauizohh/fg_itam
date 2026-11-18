@@ -104,6 +104,7 @@ class AuditLog extends Model
     {
         $names = array_values(array_unique(array_filter([
             trim($user->name),
+            trim($user->display_name),
             trim($user->username),
         ])));
 

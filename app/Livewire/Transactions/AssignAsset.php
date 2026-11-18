@@ -5,6 +5,7 @@ namespace App\Livewire\Transactions;
 use App\Models\Asset;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Location;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\AuditLogService;
@@ -19,7 +20,7 @@ class AssignAsset extends Component
 
     public string $department = 'Finance';
 
-    public string $location = 'KL Office';
+    public string $location = 'Jitra Office';
 
     public string $assignedDate = '2026-08-14';
 
@@ -47,6 +48,7 @@ class AssignAsset extends Component
         $this->validate([
             'assetId' => 'required',
             'assignTo' => 'required',
+            'location' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
         ]);
 
         $asset = Asset::find($this->assetId);
@@ -73,10 +75,10 @@ class AssignAsset extends Component
                 'condition_at_time' => $this->condition,
                 'accessories' => $this->accessories,
                 'remarks' => $this->remarks,
-                'performed_by' => $actor->name,
+                'performed_by' => $actor->display_name,
             ]);
 
-            AuditLogService::record('Assign asset', 'Asset', $asset->id, $oldUser ?: 'IT Store', "Assigned to {$this->assignTo}");
+            AuditLogService::record('Assign asset', 'Asset', $asset->id, $oldUser ?: 'Jitra Office', "Assigned to {$this->assignTo}");
         }
 
         session()->flash('success', "Asset {$this->assetId} assigned to {$this->assignTo} successfully!");

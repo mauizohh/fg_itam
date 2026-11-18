@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Administration;
 
+use App\Models\Asset;
+use App\Models\AuditException;
+use App\Models\Employee;
 use App\Models\Location;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -9,7 +12,7 @@ use Livewire\Component;
 
 class Locations extends Component
 {
-    public string $selectedOffice = 'Kuala Lumpur Office';
+    public string $selectedOffice = 'Jitra Office';
 
     public function selectOffice(string $office): void
     {
@@ -17,7 +20,9 @@ class Locations extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('admin.locations'), 403);
 
-        $this->selectedOffice = $office;
+        if (in_array($office, Location::OFFICE_OPTIONS, true)) {
+            $this->selectedOffice = $office;
+        }
     }
 
     public function render()
@@ -28,9 +33,16 @@ class Locations extends Component
 
         $locations = Location::where('office', $this->selectedOffice)->get();
 
-        $assetsTotal = ($this->selectedOffice === 'Kuala Lumpur Office') ? 782 : 120;
-        $employeesTotal = ($this->selectedOffice === 'Kuala Lumpur Office') ? 286 : 45;
-        $exceptionsTotal = ($this->selectedOffice === 'Kuala Lumpur Office') ? 8 : 2;
+        $assetsTotal = Asset::where('assigned_location', 'like', "%{$this->selectedOffice}%")->count();
+        $employeesTotal = Employee::where('location', 'like', "%{$this->selectedOffice}%")
+            ->where('status', 'Active')
+            ->count();
+        $exceptionsTotal = AuditException::where('status', 'Open')
+            ->where(function ($query): void {
+                $query->where('expected_info', 'like', "%{$this->selectedOffice}%")
+                    ->orWhere('observed_info', 'like', "%{$this->selectedOffice}%");
+            })
+            ->count();
 
         return view('livewire.administration.locations', compact('locations', 'assetsTotal', 'employeesTotal', 'exceptionsTotal'))
             ->layout('layouts.app', ['title' => 'Locations', 'breadcrumb' => 'IT Asset Management / Administration / Locations']);

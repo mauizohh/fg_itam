@@ -49,10 +49,9 @@
             <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</label>
             <select wire:model.live="locationFilter" class="itam-select text-xs h-10">
                 <option value="">All Locations</option>
-                <option value="IT Store">IT Store</option>
-                <option value="KL Office">KL Office</option>
-                <option value="Server Room">Server Room</option>
-                <option value="Penang Office">Penang Office</option>
+                @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
+                    <option value="{{ $office }}">{{ $office }}</option>
+                @endforeach
             </select>
         </div>
     </div>

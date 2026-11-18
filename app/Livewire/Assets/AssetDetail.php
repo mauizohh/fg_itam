@@ -45,7 +45,7 @@ class AssetDetail extends Component
                 'status' => 'Assigned',
                 'assigned_user' => 'Sarah Lim',
                 'department' => 'Finance',
-                'assigned_location' => 'KL Office',
+                'assigned_location' => 'Jitra Office',
                 'purchase_date' => '2026-08-01',
                 'purchase_cost' => 5200.00,
                 'warranty_end' => '2029-08-01',

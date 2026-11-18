@@ -8,7 +8,7 @@ use App\Models\AssetAcknowledgement;
 use App\Models\AuditLog;
 use App\Models\Renewal;
 use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -26,6 +26,7 @@ class Dashboard extends Component
             if ($actor->hasRole(ItamRole::Employee)) {
                 $names = array_values(array_unique(array_filter([
                     strtolower(trim($actor->name)),
+                    strtolower(trim($actor->display_name)),
                     strtolower(trim($actor->username)),
                 ])));
                 $q->where(function ($sub) use ($names): void {
@@ -91,7 +92,7 @@ class Dashboard extends Component
     /**
      * Resolve aggregated upcoming operational action categories for the actor.
      *
-     * @param  \Closure(): \Illuminate\Database\Eloquent\Builder  $scopedBase
+     * @param  \Closure(): Builder  $scopedBase
      * @return Collection<int, array{
      *     title: string,
      *     count: int,

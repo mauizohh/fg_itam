@@ -4,8 +4,7 @@
         <div>
             <h1 class="text-2xl font-heading font-bold text-[#3b4048]">My Assigned Equipment</h1>
             <p class="text-xs text-gray-500 mt-0.5">
-                Signed in as <span class="font-semibold text-[#3b4048]">{{ $user->name }}</span> ({{ $user->primary_department }})
-                &bull; View assigned assets, acknowledge receipt, and track return obligations.
+                View assigned assets, acknowledge receipt, and track return obligations.
             </p>
         </div>
         @if ($user->hasPermission('transactions.history'))
@@ -81,7 +80,7 @@
                                 @endphp
                                 <span class="{{ $pillClass }}">{{ $asset->status }}</span>
                             </td>
-                            <td class="text-xs text-gray-600">{{ $asset->assigned_location ?: 'KL Office' }}</td>
+                            <td class="text-xs text-gray-600">{{ $asset->assigned_location ?: 'Jitra Office' }}</td>
                             <td class="text-xs">
                                 @if ($asset->expected_return_date)
                                     <span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-medium">
@@ -131,7 +130,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-8 text-sm text-gray-400">
-                                No active IT equipment is currently assigned under your name ({{ $user->name }}).
+                                No active IT equipment is currently assigned under your name.
                             </td>
                         </tr>
                     @endforelse
@@ -250,8 +249,8 @@
                             <td class="text-xs text-gray-500 font-mono">{{ $tx->transaction_date ?? $tx->checkout_date ?? $tx->return_date ?? '—' }}</td>
                             <td><span class="pill normal">{{ $tx->type }}</span></td>
                             <td class="font-mono font-semibold text-[#a92d31]">{{ $tx->asset_id }}</td>
-                            <td class="text-xs text-gray-600">{{ $tx->from_user ?: 'IT Store' }}</td>
-                            <td class="text-xs text-gray-700 font-medium">{{ $tx->to_user ?: ($tx->to_location ?: 'IT Store') }}</td>
+                            <td class="text-xs text-gray-600">{{ $tx->from_user ? \App\Models\User::cleanDisplayName($tx->from_user) : 'Jitra Office' }}</td>
+                            <td class="text-xs text-gray-700 font-medium">{{ $tx->to_user ? \App\Models\User::cleanDisplayName($tx->to_user) : ($tx->to_location ?: 'Jitra Office') }}</td>
                             <td class="text-xs text-gray-500">{{ $tx->remarks ?: '—' }}</td>
                         </tr>
                     @empty

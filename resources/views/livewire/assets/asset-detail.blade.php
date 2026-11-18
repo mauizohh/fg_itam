@@ -50,7 +50,7 @@
             <div class="space-y-3 text-xs">
                 <div>
                     <span class="text-gray-400 block text-[11px]">Assigned To</span>
-                    <strong class="text-gray-900 text-sm font-semibold">{{ $asset->assigned_user ?: 'Unassigned' }}</strong>
+                    <strong class="text-gray-900 text-sm font-semibold">{{ $asset->display_assigned_user ?: 'Unassigned' }}</strong>
                 </div>
                 <div>
                     <span class="text-gray-400 block text-[11px]">Department</span>
@@ -58,7 +58,7 @@
                 </div>
                 <div>
                     <span class="text-gray-400 block text-[11px]">Location</span>
-                    <span class="text-gray-800 font-medium">{{ $asset->assigned_location ?: 'KL Office' }}</span>
+                    <span class="text-gray-800 font-medium">{{ $asset->assigned_location ?: 'Jitra Office' }}</span>
                 </div>
                 <div>
                     <span class="text-gray-400 block text-[11px]">Assigned Date</span>

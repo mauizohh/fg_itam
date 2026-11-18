@@ -77,11 +77,11 @@
 
             @if ($currentUser)
                 <div class="flex items-center gap-2 pl-2">
-                    <div class="w-8 h-8 rounded-full bg-[#8f2428] text-white flex items-center justify-center font-heading font-bold text-xs shadow-sm" title="{{ $currentUser->name }} ({{ $currentUser->role_label }})">
+                    <div class="w-8 h-8 rounded-full bg-[#8f2428] text-white flex items-center justify-center font-heading font-bold text-xs shadow-sm" title="{{ $currentUser->display_name }} ({{ $currentUser->role_label }})">
                         {{ $currentUser->initials }}
                     </div>
                     <div class="hidden xl:flex flex-col text-left">
-                        <span class="text-xs font-bold text-[#3b4048] leading-tight">{{ $currentUser->name }}</span>
+                        <span class="text-xs font-bold text-[#3b4048] leading-tight">{{ $currentUser->display_name }}</span>
                         <span class="text-[10px] text-gray-500">{{ $currentUser->role_label }}</span>
                     </div>
                     <form method="POST" action="{{ route('logout') }}" class="ml-1">

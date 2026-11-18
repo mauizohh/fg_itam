@@ -4,6 +4,7 @@ namespace App\Livewire\Assets;
 
 use App\Models\Asset;
 use App\Models\Category;
+use App\Models\Location;
 use App\Models\User;
 use App\Services\AssetIdGeneratorService;
 use App\Services\AuditLogService;
@@ -38,7 +39,7 @@ class AllAssets extends Component
 
     public string $newSerial = '';
 
-    public string $newLocation = 'IT Store';
+    public string $newLocation = 'Jitra Office';
 
     public string $newStatus = 'Available';
 
@@ -76,6 +77,7 @@ class AllAssets extends Component
             'newId' => 'required|string',
             'newName' => 'required|string|max:255',
             'newSerial' => 'required|string|unique:fg_itam_assets,serial_number',
+            'newLocation' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
         ]);
 
         $cat = Category::find($this->newCategory);
@@ -96,7 +98,7 @@ class AllAssets extends Component
             'last_physical_verification' => now(),
         ]);
 
-        AuditLogService::record('Register asset', 'Asset', $asset->id, null, 'Registered in IT Store');
+        AuditLogService::record('Register asset', 'Asset', $asset->id, null, "Registered in {$this->newLocation}");
 
         $this->showAddModal = false;
         $this->reset(['newName', 'newBrand', 'newModel', 'newSerial', 'newCost']);

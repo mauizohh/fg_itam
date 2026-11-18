@@ -75,16 +75,16 @@
                                 <div class="font-mono font-bold text-[#a92d31] text-xs">{{ $tx->asset_id }}</div>
                                 <div class="text-xs text-gray-600">{{ $tx->asset_name ?? '—' }}</div>
                             </td>
-                            <td class="text-xs text-gray-600">{{ $tx->from_user ?: 'IT Store' }}</td>
+                            <td class="text-xs text-gray-600">{{ $tx->from_user ? \App\Models\User::cleanDisplayName($tx->from_user) : 'Jitra Office' }}</td>
                             <td class="text-xs">
-                                <div class="font-medium text-[#3b4048]">{{ $tx->to_user ?: 'IT Store' }}</div>
+                                <div class="font-medium text-[#3b4048]">{{ $tx->to_user ? \App\Models\User::cleanDisplayName($tx->to_user) : 'Jitra Office' }}</div>
                                 @if ($tx->to_department || $tx->asset_department)
                                     <div class="text-[11px] text-gray-400">{{ $tx->to_department ?: $tx->asset_department }}</div>
                                 @endif
                             </td>
                             <td class="text-xs text-gray-600">{{ $tx->to_location ?: '—' }}</td>
                             <td class="text-xs text-gray-600">{{ $tx->condition_at_time ?: '—' }}</td>
-                            <td class="text-xs text-gray-600">{{ $tx->performed_by ?: 'System' }}</td>
+                            <td class="text-xs text-gray-600">{{ $tx->performed_by ? \App\Models\User::cleanDisplayName($tx->performed_by) : 'System' }}</td>
                             <td class="text-xs text-gray-500 max-w-xs">{{ $tx->remarks ?: '—' }}</td>
                         </tr>
                     @empty

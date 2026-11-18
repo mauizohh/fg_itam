@@ -79,7 +79,7 @@ class Login extends Component
             (string) $user->usr_id,
             null,
             "Signed in as {$user->role_label} ({$user->username})",
-            $user->name
+            $user->display_name
         );
 
         $defaultRoute = $user->hasRole(ItamRole::Employee)

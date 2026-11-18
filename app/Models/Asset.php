@@ -27,7 +27,7 @@ class Asset extends Model
                         ['id' => $asset->id],
                         [
                             'name' => $asset->name,
-                            'assigned' => !empty($asset->assigned_user) ? ($asset->assigned_user . (!empty($asset->department) ? ' (' . $asset->department . ')' : '')) : 'Unassigned',
+                            'assigned' => ! empty($asset->assigned_user) ? ($asset->assigned_user.(! empty($asset->department) ? ' ('.$asset->department.')' : '')) : 'Unassigned',
                             'assigned_user' => $asset->assigned_user ?? '',
                             'assigned_department' => $asset->department ?? '',
                             'serial' => $asset->serial_number ?? '',
@@ -62,14 +62,30 @@ class Asset extends Model
     }
 
     /**
+     * Cleaned assigned user name for UI display without category suffixes.
+     */
+    public function getDisplayAssignedUserAttribute(): ?string
+    {
+        if (empty($this->assigned_user)) {
+            return null;
+        }
+
+        $cleaned = User::cleanDisplayName($this->assigned_user);
+
+        return $cleaned !== '' ? $cleaned : null;
+    }
+
+    /**
      * Formatted assigned description.
      */
     public function getFormattedAssignedAttribute(): string
     {
-        if (!empty($this->assigned_user) && !empty($this->department)) {
-            return "{$this->assigned_user} ({$this->department})";
+        $displayUser = $this->display_assigned_user;
+        if (! empty($displayUser) && ! empty($this->department)) {
+            return "{$displayUser} ({$this->department})";
         }
-        return $this->assigned_user ?: ($this->assigned_location ?: 'Unassigned');
+
+        return $displayUser ?: ($this->assigned_location ?: 'Unassigned');
     }
 
     /**
@@ -77,9 +93,12 @@ class Asset extends Model
      */
     public function isWarrantyExpiringSoon(): bool
     {
-        if (empty($this->warranty_end)) return false;
+        if (empty($this->warranty_end)) {
+            return false;
+        }
         try {
             $end = Carbon::parse($this->warranty_end);
+
             return $end->isFuture() && $end->diffInDays(Carbon::now()) <= 30;
         } catch (\Throwable) {
             return false;
