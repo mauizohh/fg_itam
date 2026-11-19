@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Employee extends Model
 {
     protected $table = 'fg_itam_employees';
+
     protected $guarded = [];
 
     public function getInitialsAttribute(): string
@@ -15,8 +16,11 @@ class Employee extends Model
         $initials = '';
         foreach ($parts as $p) {
             $initials .= strtoupper(substr($p, 0, 1));
-            if (strlen($initials) >= 2) break;
+            if (strlen($initials) >= 2) {
+                break;
+            }
         }
+
         return $initials ?: 'EM';
     }
 }

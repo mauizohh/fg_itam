@@ -173,6 +173,11 @@ h1, h2, h3, h4, .font-heading {
     border-bottom: none;
 }
 
+.itam-table th.text-center,
+.itam-table td.text-center {
+    text-align: center !important;
+}
+
 /* Form inputs */
 .itam-input, .itam-select {
     border: 1px solid #e3d0d0;
@@ -190,4 +195,24 @@ h1, h2, h3, h4, .font-heading {
     outline: none;
     border-color: #a92d31;
     box-shadow: 0 0 0 2px #e8cccc;
+}
+
+.kebab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.15s ease-in-out;
+}
+
+.kebab-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
 }

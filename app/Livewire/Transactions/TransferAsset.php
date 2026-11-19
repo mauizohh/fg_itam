@@ -16,6 +16,8 @@ class TransferAsset extends Component
 {
     public string $assetId = '';
 
+    public string $assetSearch = '';
+
     public string $currentCustodian = '';
 
     public string $currentLocation = 'Jitra Office';
@@ -77,16 +79,19 @@ class TransferAsset extends Component
         abort_unless($actor->hasPermission('transactions.manage'), 403);
 
         $this->validate([
-            'assetId' => 'required',
-            'transferTo' => 'required',
+            'assetId' => 'required|exists:fg_itam_assets,id',
+            'newDepartment' => 'required|string|max:100',
+            'transferTo' => 'nullable|string|max:150',
             'newLocation' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
         ]);
 
         $asset = Asset::find($this->assetId);
         if ($asset) {
             $oldCustodian = $asset->assigned_user;
+            $newCustodian = trim($this->transferTo) !== '' ? trim($this->transferTo) : null;
+
             $asset->update([
-                'assigned_user' => $this->transferTo,
+                'assigned_user' => $newCustodian,
                 'department' => $this->newDepartment,
                 'assigned_location' => $this->newLocation,
             ]);
@@ -95,7 +100,7 @@ class TransferAsset extends Component
                 'type' => 'Transfer',
                 'asset_id' => $asset->id,
                 'from_user' => $oldCustodian,
-                'to_user' => $this->transferTo,
+                'to_user' => $newCustodian,
                 'to_department' => $this->newDepartment,
                 'to_location' => $this->newLocation,
                 'transaction_date' => $this->effectiveDate,
@@ -103,10 +108,13 @@ class TransferAsset extends Component
                 'performed_by' => $actor->display_name,
             ]);
 
-            AuditLogService::record('Transfer asset', 'Asset', $asset->id, "Transferred from {$oldCustodian}", "Transferred to {$this->transferTo}");
-        }
+            $fromLabel = $oldCustodian ?: ($asset->department ?: 'Department');
+            $toLabel = $newCustodian ?: $this->newDepartment;
 
-        session()->flash('success', "Asset {$this->assetId} transferred to {$this->transferTo} successfully!");
+            AuditLogService::record('Transfer asset', 'Asset', $asset->id, "Transferred from {$fromLabel}", "Transferred to {$toLabel}");
+
+            session()->flash('success', "Asset {$this->assetId} transferred to {$toLabel} successfully!");
+        }
 
         return redirect()->route('assets.assigned');
     }
@@ -117,14 +125,26 @@ class TransferAsset extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('transactions.manage'), 403);
 
-        $assets = Asset::whereIn('status', ['Assigned', 'Loan'])
-            ->when($this->assetId !== '', fn ($q) => $q->orWhere('id', $this->assetId))
-            ->orderBy('id')
-            ->get();
+        $query = Asset::query()->whereIn('status', ['Assigned', 'Loan']);
+
+        if (trim($this->assetSearch) !== '') {
+            $term = trim($this->assetSearch);
+            $query->where(function ($sq) use ($term) {
+                $sq->where('id', 'like', "%{$term}%")
+                    ->orWhere('name', 'like', "%{$term}%")
+                    ->orWhere('assigned_user', 'like', "%{$term}%")
+                    ->orWhere('department', 'like', "%{$term}%")
+                    ->orWhere('serial_number', 'like', "%{$term}%");
+            });
+        }
+
+        $assets = $query->orderBy('id')->get();
+
+        $selectedAsset = $this->assetId ? Asset::find($this->assetId) : null;
         $employees = Employee::where('status', 'Active')->get();
         $departments = Department::all();
 
-        return view('livewire.transactions.transfer-asset', compact('assets', 'employees', 'departments'))
+        return view('livewire.transactions.transfer-asset', compact('assets', 'selectedAsset', 'employees', 'departments'))
             ->layout('layouts.app', ['title' => 'Transfer Asset', 'breadcrumb' => 'IT Asset Management / Transactions / Transfer Asset']);
     }
 }

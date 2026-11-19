@@ -12,21 +12,56 @@ use Livewire\Component;
 
 class LoanAsset extends Component
 {
-    public string $assetId = 'IT-LAP-2026-00418';
+    public string $assetId = '';
+
+    public string $assetSearch = '';
 
     public string $borrower = 'Aisha Noor';
 
     public string $purpose = 'Client presentation';
 
-    public string $checkoutDate = '2026-08-14';
+    public string $checkoutDate = '';
 
-    public string $dueDate = '2026-08-16';
+    public string $dueDate = '';
 
     public string $condition = 'Good';
 
     public string $accessories = 'Charger';
 
     public string $notes = 'Temporary loan - not permanent assignment';
+
+    public function mount(): void
+    {
+        $this->checkoutDate = now()->format('Y-m-d');
+        $this->dueDate = now()->addDays(7)->format('Y-m-d');
+
+        $requestedId = (string) request()->query('asset_id', '');
+        if ($requestedId !== '') {
+            $asset = Asset::find($requestedId);
+            if ($asset) {
+                $this->assetId = $asset->id;
+                if ($asset->condition) {
+                    $this->condition = $asset->condition;
+                }
+            }
+        } else {
+            $firstAvailable = Asset::where('status', 'Available')->orderBy('id')->first();
+            if ($firstAvailable) {
+                $this->assetId = $firstAvailable->id;
+                if ($firstAvailable->condition) {
+                    $this->condition = $firstAvailable->condition;
+                }
+            }
+        }
+    }
+
+    public function updatedAssetId(string $value): void
+    {
+        $asset = Asset::find($value);
+        if ($asset && $asset->condition) {
+            $this->condition = $asset->condition;
+        }
+    }
 
     public function submit()
     {
@@ -75,10 +110,23 @@ class LoanAsset extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('transactions.manage'), 403);
 
-        $assets = Asset::all();
+        $query = Asset::where('status', 'Available');
+        if (trim($this->assetSearch) !== '') {
+            $term = trim($this->assetSearch);
+            $query->where(function ($sq) use ($term) {
+                $sq->where('id', 'like', "%{$term}%")
+                    ->orWhere('name', 'like', "%{$term}%")
+                    ->orWhere('brand', 'like', "%{$term}%")
+                    ->orWhere('model', 'like', "%{$term}%")
+                    ->orWhere('serial_number', 'like', "%{$term}%");
+            });
+        }
+
+        $assets = $query->orderBy('id')->get();
+        $selectedAsset = $this->assetId ? Asset::find($this->assetId) : null;
         $employees = Employee::where('status', 'Active')->get();
 
-        return view('livewire.transactions.loan-asset', compact('assets', 'employees'))
+        return view('livewire.transactions.loan-asset', compact('assets', 'selectedAsset', 'employees'))
             ->layout('layouts.app', ['title' => 'Loan Asset', 'breadcrumb' => 'IT Asset Management / Transactions / Loan Asset']);
     }
 }

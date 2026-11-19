@@ -12,11 +12,13 @@ use Livewire\Component;
 
 class ReturnAsset extends Component
 {
-    public string $assetId = 'IT-LAP-2026-00123';
+    public string $assetId = '';
 
-    public string $returnedBy = 'Sarah Lim';
+    public string $assetSearch = '';
 
-    public string $returnDate = '2026-08-14';
+    public string $returnedBy = '';
+
+    public string $returnDate = '';
 
     public string $returnLocation = 'Jitra Office';
 
@@ -34,13 +36,47 @@ class ReturnAsset extends Component
 
     public bool $checkDataHandling = true;
 
-    public function mount()
+    public function mount(): void
     {
-        if ($id = request()->query('asset_id')) {
-            $this->assetId = $id;
-            $asset = Asset::find($id);
-            if ($asset && $asset->assigned_user) {
-                $this->returnedBy = $asset->assigned_user;
+        $this->returnDate = now()->format('Y-m-d');
+        $requestedId = (string) request()->query('asset_id', '');
+        if ($requestedId !== '') {
+            $this->assetId = $requestedId;
+            $asset = Asset::find($requestedId);
+            if ($asset) {
+                $this->returnedBy = $asset->display_assigned_user ?: ($asset->assigned_user ?: '');
+                if ($asset->assigned_location && in_array($asset->assigned_location, Location::OFFICE_OPTIONS, true)) {
+                    $this->returnLocation = $asset->assigned_location;
+                }
+                if ($asset->condition) {
+                    $this->condition = $asset->condition;
+                }
+            }
+        } else {
+            $first = Asset::whereIn('status', ['Assigned', 'Loan'])->orderBy('id')->first();
+            if ($first) {
+                $this->assetId = $first->id;
+                $this->returnedBy = $first->display_assigned_user ?: ($first->assigned_user ?: '');
+                if ($first->assigned_location && in_array($first->assigned_location, Location::OFFICE_OPTIONS, true)) {
+                    $this->returnLocation = $first->assigned_location;
+                }
+                if ($first->condition) {
+                    $this->condition = $first->condition;
+                }
+            }
+        }
+    }
+
+    public function updatedAssetId(string $value): void
+    {
+        $asset = Asset::find($value);
+        if ($asset) {
+            $this->returnedBy = $asset->display_assigned_user ?: ($asset->assigned_user ?: '');
+            if ($asset->assigned_location && in_array($asset->assigned_location, Location::OFFICE_OPTIONS, true)) {
+                $this->returnLocation = $asset->assigned_location;
+            }
+            if ($asset->condition) {
+                $this->condition = $asset->condition;
             }
         }
     }
@@ -98,9 +134,22 @@ class ReturnAsset extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('transactions.manage'), 403);
 
-        $assignedAssets = Asset::where('status', 'Assigned')->get();
+        $query = Asset::whereIn('status', ['Assigned', 'Loan']);
+        if (trim($this->assetSearch) !== '') {
+            $term = trim($this->assetSearch);
+            $query->where(function ($sq) use ($term) {
+                $sq->where('id', 'like', "%{$term}%")
+                    ->orWhere('name', 'like', "%{$term}%")
+                    ->orWhere('assigned_user', 'like', "%{$term}%")
+                    ->orWhere('department', 'like', "%{$term}%")
+                    ->orWhere('serial_number', 'like', "%{$term}%");
+            });
+        }
 
-        return view('livewire.transactions.return-asset', compact('assignedAssets'))
+        $assignedAssets = $query->orderBy('id')->get();
+        $selectedAsset = $this->assetId ? Asset::find($this->assetId) : null;
+
+        return view('livewire.transactions.return-asset', compact('assignedAssets', 'selectedAsset'))
             ->layout('layouts.app', ['title' => 'Return Asset', 'breadcrumb' => 'IT Asset Management / Transactions / Return Asset']);
     }
 }

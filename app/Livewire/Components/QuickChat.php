@@ -8,8 +8,11 @@ use Livewire\Component;
 class QuickChat extends Component
 {
     public bool $isOpen = false;
+
     public string $searchQuery = '';
+
     public array $results = [];
+
     public array $recentLookups = [
         'IT-DSK-2026-00001' => 'HP ProDesk 4 Tower G1 (Safety)',
         'IT-LAP-2026-00123' => 'Dell Latitude 7450 (Sarah Lim)',
@@ -18,7 +21,7 @@ class QuickChat extends Component
 
     public function toggle()
     {
-        $this->isOpen = !$this->isOpen;
+        $this->isOpen = ! $this->isOpen;
     }
 
     public function updatedSearchQuery()

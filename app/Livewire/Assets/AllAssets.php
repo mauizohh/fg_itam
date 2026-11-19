@@ -8,6 +8,7 @@ use App\Models\Location;
 use App\Models\User;
 use App\Services\AssetIdGeneratorService;
 use App\Services\AuditLogService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -23,6 +24,41 @@ class AllAssets extends Component
     public string $categoryFilter = 'All';
 
     public string $locationFilter = 'All';
+
+    public string $sortField = 'id';
+
+    public string $sortDirection = 'asc';
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCategoryFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingLocationFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function sortBy(string $field): void
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
 
     // Modal state for Add Asset
     public bool $showAddModal = false;
@@ -52,6 +88,10 @@ class AllAssets extends Component
     public ?string $newWarrantyStart = null;
 
     public ?string $newWarrantyEnd = null;
+
+    public ?string $newReplacementDue = null;
+
+    public ?string $initialPurchaseDate = null;
 
     // Modal state for Edit Asset
     public bool $showEditModal = false;
@@ -99,7 +139,18 @@ class AllAssets extends Component
 
         $this->newId = AssetIdGeneratorService::generate($this->newCategory);
         $this->newPurchaseDate = now()->format('Y-m-d');
+        $this->initialPurchaseDate = $this->newPurchaseDate;
+        $this->newWarrantyStart = $this->newPurchaseDate;
+        $this->newReplacementDue = null;
         $this->showAddModal = true;
+    }
+
+    public function updatedNewPurchaseDate(?string $val): void
+    {
+        if (empty($this->newWarrantyStart) || $this->newWarrantyStart === $this->initialPurchaseDate) {
+            $this->newWarrantyStart = $val;
+        }
+        $this->initialPurchaseDate = $val;
     }
 
     public function updatedNewCategory($val)
@@ -122,6 +173,7 @@ class AllAssets extends Component
             'newWarrantyStart' => 'nullable|date',
             'newWarrantyEnd' => 'nullable|date',
             'newWarrantyProvider' => 'nullable|string|max:150',
+            'newReplacementDue' => 'nullable|date',
         ]);
 
         $cat = Category::find($this->newCategory);
@@ -142,6 +194,7 @@ class AllAssets extends Component
             'warranty_start' => $this->newWarrantyStart ?: null,
             'warranty_end' => $this->newWarrantyEnd ?: null,
             'warranty_provider' => $this->newWarrantyProvider ?: null,
+            'replacement_due' => $this->newReplacementDue ?: null,
             'verification_status' => 'Verified',
             'last_physical_verification' => now(),
         ]);
@@ -149,7 +202,7 @@ class AllAssets extends Component
         AuditLogService::record('Register asset', 'Asset', $asset->id, null, "Registered in {$this->newLocation}");
 
         $this->showAddModal = false;
-        $this->reset(['newName', 'newBrand', 'newModel', 'newSerial', 'newCost', 'newPurchaseDate', 'newWarrantyProvider', 'newWarrantyStart', 'newWarrantyEnd']);
+        $this->reset(['newName', 'newBrand', 'newModel', 'newSerial', 'newCost', 'newPurchaseDate', 'newWarrantyProvider', 'newWarrantyStart', 'newWarrantyEnd', 'newReplacementDue']);
         session()->flash('success', "Asset {$asset->id} registered successfully!");
     }
 
@@ -170,15 +223,35 @@ class AllAssets extends Component
             : Location::OFFICE_OPTIONS[0];
         $this->editCondition = (string) ($asset->condition ?: 'Good');
         $this->editPurchaseDate = $asset->purchase_date ? substr((string) $asset->purchase_date, 0, 10) : null;
+        $this->initialPurchaseDate = $this->editPurchaseDate;
         $this->editPurchaseCost = $asset->purchase_cost ? (float) $asset->purchase_cost : null;
         $this->editWarrantyProvider = (string) ($asset->warranty_provider ?? '');
-        $this->editWarrantyStart = $asset->warranty_start ? substr((string) $asset->warranty_start, 0, 10) : null;
+        $this->editWarrantyStart = $asset->warranty_start
+            ? substr((string) $asset->warranty_start, 0, 10)
+            : ($this->editPurchaseDate ?: null);
         $this->editWarrantyEnd = $asset->warranty_end ? substr((string) $asset->warranty_end, 0, 10) : null;
-        $this->editReplacementDue = (string) ($asset->replacement_due ?? '');
+
+        $parsedDue = null;
+        if (! empty($asset->replacement_due)) {
+            try {
+                $parsedDue = Carbon::parse($asset->replacement_due)->format('Y-m-d');
+            } catch (\Throwable) {
+                $parsedDue = null;
+            }
+        }
+        $this->editReplacementDue = $parsedDue;
         $this->editRemarks = (string) ($asset->remarks ?? '');
 
         $this->resetValidation();
         $this->showEditModal = true;
+    }
+
+    public function updatedEditPurchaseDate(?string $val): void
+    {
+        if (empty($this->editWarrantyStart) || $this->editWarrantyStart === $this->initialPurchaseDate) {
+            $this->editWarrantyStart = $val;
+        }
+        $this->initialPurchaseDate = $val;
     }
 
     public function cancelEditModal(): void
@@ -278,7 +351,14 @@ class AllAssets extends Component
             $query->where('assigned_location', 'like', "%{$this->locationFilter}%");
         }
 
-        $assets = $query->orderBy('id')->paginate(15);
+        $allowedSorts = ['id', 'name', 'serial_number', 'assigned_user', 'assigned_location', 'status'];
+        if (in_array($this->sortField, $allowedSorts, true)) {
+            $query->orderBy($this->sortField, $this->sortDirection);
+        } else {
+            $query->orderBy('id', 'asc');
+        }
+
+        $assets = $query->paginate(15);
         $categories = Category::all();
 
         return view('livewire.assets.all-assets', compact('assets', 'categories'))

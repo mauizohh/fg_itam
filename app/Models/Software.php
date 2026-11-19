@@ -7,5 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Software extends Model
 {
     protected $table = 'fg_itam_software';
+
     protected $guarded = [];
 }

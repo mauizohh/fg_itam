@@ -54,7 +54,7 @@
                     @if (auth()->user()?->canViewFinancialData())
                         <th>Cost</th>
                     @endif
-                    <th>Status</th>
+                    <th class="text-center w-28">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,8 +72,10 @@
                     @if (auth()->user()?->canViewFinancialData())
                         <td class="font-bold font-heading text-gray-800">RM {{ number_format($rpr->cost) }}</td>
                     @endif
-                    <td>
-                        <span class="{{ $rpr->status_pill_class }}">{{ $rpr->status }}</span>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center">
+                            <span class="{{ $rpr->status_pill_class }}">{{ $rpr->status }}</span>
+                        </div>
                     </td>
                 </tr>
                 @endforeach

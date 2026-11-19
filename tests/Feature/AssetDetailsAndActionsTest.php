@@ -2,10 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Assets\AllAssets;
 use App\Livewire\Assets\AssetDetail;
+use App\Livewire\Assets\AssignedAssets;
+use App\Livewire\Assets\AvailableAssets;
 use App\Livewire\Dashboard;
 use App\Livewire\Maintenance\Warranty;
 use App\Livewire\Transactions\AssignAsset;
+use App\Livewire\Transactions\LoanAsset;
+use App\Livewire\Transactions\ReturnAsset;
 use App\Livewire\Transactions\TransferAsset;
 use App\Models\Asset;
 use App\Models\AuditLog;
@@ -345,5 +350,353 @@ class AssetDetailsAndActionsTest extends TestCase
         $fresh = $asset->fresh();
         $this->assertSame('Dell Mission Critical 4Hr', $fresh->warranty_provider);
         $this->assertSame('2031-06-01', substr((string) $fresh->warranty_end, 0, 10));
+    }
+
+    public function test_assign_asset_requires_department_and_allows_optional_assignee(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $asset = Asset::updateOrCreate(
+            ['id' => 'IT-ACC-2026-99010'],
+            [
+                'asset_tag' => 'TAG-ACC-99010',
+                'name' => 'Departmental Projector',
+                'category_id' => 'ACC',
+                'category_name' => 'Accessory',
+                'brand' => 'Epson',
+                'model' => 'EB-FH52',
+                'serial_number' => 'SN-EPSON-99010',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+                'department' => null,
+                'assigned_user' => null,
+            ]
+        );
+
+        // Department missing should fail validation
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->set('assetId', $asset->id)
+            ->set('department', '')
+            ->set('assignTo', '')
+            ->set('location', 'Jitra Office')
+            ->call('submit')
+            ->assertHasErrors(['department']);
+
+        // Department provided with empty assignTo should succeed
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->set('assetId', $asset->id)
+            ->set('department', 'Human Resources')
+            ->set('assignTo', '')
+            ->set('location', 'Kulim Office')
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('assets.assigned'));
+
+        $fresh = $asset->fresh();
+        $this->assertSame('Assigned', $fresh->status);
+        $this->assertNull($fresh->assigned_user);
+        $this->assertSame('Human Resources', $fresh->department);
+        $this->assertSame('Kulim Office', $fresh->assigned_location);
+
+        // Webpage displays department name when assigned_user is null
+        $this->assertSame('Human Resources', $fresh->display_assigned_user);
+    }
+
+    public function test_warranty_start_date_defaults_to_purchase_date_and_syncs(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $asset = Asset::updateOrCreate(
+            ['id' => 'IT-LAP-2026-99011'],
+            [
+                'asset_tag' => 'TAG-LAP-99011',
+                'name' => 'Test Default Warranty Laptop',
+                'category_id' => 'LAP',
+                'category_name' => 'Laptop',
+                'brand' => 'Dell',
+                'model' => 'Latitude 5540',
+                'serial_number' => 'SN-DELL-99011',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+                'purchase_date' => '2026-05-20',
+                'warranty_start' => null,
+            ]
+        );
+
+        // On AssetDetail: openEditModal defaults warranty start to purchase date
+        Livewire::actingAs($admin)
+            ->test(AssetDetail::class, ['id' => $asset->id])
+            ->call('openEditModal')
+            ->assertSet('editPurchaseDate', '2026-05-20')
+            ->assertSet('editWarrantyStart', '2026-05-20')
+            ->set('editPurchaseDate', '2026-06-01')
+            ->assertSet('editWarrantyStart', '2026-06-01');
+
+        // On Warranty: openWarrantyModal defaults warranty start to asset purchase date
+        Livewire::actingAs($admin)
+            ->test(Warranty::class)
+            ->call('openWarrantyModal', $asset->id)
+            ->assertSet('warrantyStart', '2026-05-20');
+    }
+
+    public function test_replacement_due_accepts_and_persists_date_format(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $asset = Asset::updateOrCreate(
+            ['id' => 'IT-NET-2026-99012'],
+            [
+                'asset_tag' => 'TAG-NET-99012',
+                'name' => 'Core Switch',
+                'category_id' => 'NET',
+                'category_name' => 'Network',
+                'brand' => 'Cisco',
+                'model' => 'Catalyst 9300',
+                'serial_number' => 'SN-CSCO-99012',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+                'replacement_due' => 'Aug 2030',
+            ]
+        );
+
+        Livewire::actingAs($admin)
+            ->test(AssetDetail::class, ['id' => $asset->id])
+            ->call('openEditModal')
+            ->assertSet('editReplacementDue', '2030-08-01')
+            ->set('editReplacementDue', '2032-11-15')
+            ->call('saveAssetEdit')
+            ->assertHasNoErrors();
+
+        $this->assertSame('2032-11-15', $asset->fresh()->replacement_due);
+    }
+
+    public function test_warranty_table_sorts_active_expiries_first_and_expired_last(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $expiredAsset = Asset::updateOrCreate(
+            ['id' => 'IT-MON-2026-99013'],
+            [
+                'asset_tag' => 'TAG-MON-99013',
+                'name' => 'Old Expired Display',
+                'category_id' => 'MON',
+                'category_name' => 'Monitor',
+                'brand' => 'Dell',
+                'model' => 'P2419H',
+                'serial_number' => 'SN-EXP-99013',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+                'warranty_end' => now()->subMonths(2)->format('Y-m-d'),
+                'warranty_provider' => 'Expired Care',
+            ]
+        );
+
+        $soonAsset = Asset::updateOrCreate(
+            ['id' => 'IT-MON-2026-99014'],
+            [
+                'asset_tag' => 'TAG-MON-99014',
+                'name' => 'Expiring Soon Display',
+                'category_id' => 'MON',
+                'category_name' => 'Monitor',
+                'brand' => 'Dell',
+                'model' => 'P2422H',
+                'serial_number' => 'SN-SOON-99014',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+                'warranty_end' => now()->addDays(15)->format('Y-m-d'),
+                'warranty_provider' => 'Immediate Care',
+            ]
+        );
+
+        $futureAsset = Asset::updateOrCreate(
+            ['id' => 'IT-MON-2026-99015'],
+            [
+                'asset_tag' => 'TAG-MON-99015',
+                'name' => 'Future Warranty Display',
+                'category_id' => 'MON',
+                'category_name' => 'Monitor',
+                'brand' => 'Dell',
+                'model' => 'U2723QE',
+                'serial_number' => 'SN-FUT-99015',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+                'warranty_end' => now()->addYears(2)->format('Y-m-d'),
+                'warranty_provider' => 'Long Term Care',
+            ]
+        );
+
+        // Default sort: soonAsset first, futureAsset second, expiredAsset at bottom
+        $test = Livewire::actingAs($admin)
+            ->test(Warranty::class);
+
+        $renderedHtml = $test->html();
+        $soonPos = strpos($renderedHtml, $soonAsset->id);
+        $futurePos = strpos($renderedHtml, $futureAsset->id);
+        $expiredPos = strpos($renderedHtml, $expiredAsset->id);
+
+        $this->assertNotFalse($soonPos, 'Soon asset not found');
+        $this->assertNotFalse($futurePos, 'Future asset not found');
+        $this->assertNotFalse($expiredPos, 'Expired asset not found');
+        $this->assertTrue($soonPos < $futurePos, 'Expected soon asset before future asset');
+        $this->assertTrue($futurePos < $expiredPos, 'Expected future asset before expired asset at bottom');
+
+        // Test filter: expired only
+        $test->set('statusFilter', 'expired')
+            ->assertSee($expiredAsset->id)
+            ->assertDontSee($soonAsset->id)
+            ->assertDontSee($futureAsset->id);
+    }
+
+    public function test_assign_and_transfer_asset_dropdown_search_filters_results(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $assetA = Asset::updateOrCreate(
+            ['id' => 'IT-LAP-2026-99016'],
+            [
+                'asset_tag' => 'TAG-LAP-99016',
+                'name' => 'Searchable Alpha Laptop',
+                'category_id' => 'LAP',
+                'category_name' => 'Laptop',
+                'brand' => 'Lenovo',
+                'model' => 'ThinkPad P1',
+                'serial_number' => 'SN-ALPHA-99016',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+            ]
+        );
+
+        $assetB = Asset::updateOrCreate(
+            ['id' => 'IT-LAP-2026-99017'],
+            [
+                'asset_tag' => 'TAG-LAP-99017',
+                'name' => 'Searchable Beta Laptop',
+                'category_id' => 'LAP',
+                'category_name' => 'Laptop',
+                'brand' => 'Dell',
+                'model' => 'Latitude 7420',
+                'serial_number' => 'SN-BETA-99017',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+            ]
+        );
+
+        // Search in AssignAsset
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->set('assetSearch', 'ALPHA')
+            ->assertSee('Searchable Alpha Laptop')
+            ->assertDontSee('Searchable Beta Laptop')
+            ->set('assetSearch', 'BETA')
+            ->assertSee('Searchable Beta Laptop')
+            ->assertDontSee('Searchable Alpha Laptop');
+
+        // Turn asset A into assigned for TransferAsset testing
+        $assetA->update(['status' => 'Assigned', 'assigned_user' => 'Test User']);
+
+        // Search in TransferAsset
+        Livewire::actingAs($admin)
+            ->test(TransferAsset::class)
+            ->set('assetSearch', 'ALPHA')
+            ->assertSee('Searchable Alpha Laptop');
+    }
+
+    public function test_warranty_page_paginates_at_15_and_supports_sorting_and_kebab_actions(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        Livewire::actingAs($admin)
+            ->test(Warranty::class)
+            ->assertSeeHtml('kebab-btn')
+            ->assertSee('Review')
+            ->assertSee('Update')
+            ->call('sortBy', 'id')
+            ->assertSet('sortField', 'id')
+            ->assertSet('sortDirection', 'asc')
+            ->call('sortBy', 'id')
+            ->assertSet('sortField', 'id')
+            ->assertSet('sortDirection', 'desc');
+    }
+
+    public function test_all_assets_table_supports_column_sorting_and_kebab_dropdown(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        Livewire::actingAs($admin)
+            ->test(AllAssets::class)
+            ->assertSeeHtml('kebab-btn')
+            ->call('sortBy', 'name')
+            ->assertSet('sortField', 'name')
+            ->assertSet('sortDirection', 'asc')
+            ->call('sortBy', 'name')
+            ->assertSet('sortDirection', 'desc');
+    }
+
+    public function test_dashboard_recent_activity_action_by_and_employee_use_standard_plain_text_design(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $component = Livewire::actingAs($admin)->test(Dashboard::class);
+        $html = $component->html();
+
+        // Action By column header exists
+        $this->assertStringContainsString('Action By', $html);
+        $this->assertStringContainsString('Employee', $html);
+
+        // Action By cells no longer use the bg-gray-100 badge wrapper
+        $this->assertStringNotContainsString('bg-gray-100 text-gray-700 font-semibold whitespace-nowrap', $html);
+    }
+
+    public function test_assigned_assets_renders_kebab_menu_and_centered_condition_and_action(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        Livewire::actingAs($admin)
+            ->test(AssignedAssets::class)
+            ->assertSeeHtml('kebab-btn')
+            ->assertSeeHtml('w-28">Condition</th>')
+            ->assertSeeHtml('w-24">Action</th>');
+    }
+
+    public function test_available_assets_renders_centered_condition_and_action(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        Livewire::actingAs($admin)
+            ->test(AvailableAssets::class)
+            ->assertSeeHtml('w-28">Condition</th>')
+            ->assertSeeHtml('w-24">Action</th>')
+            ->assertSeeHtml('flex items-center justify-center');
+    }
+
+    public function test_warranty_filter_box_does_not_contain_overlapping_search_svg_icon(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $html = Livewire::actingAs($admin)
+            ->test(Warranty::class)
+            ->html();
+
+        // The search input inside the filter box should not have the overlapping svg icon
+        $this->assertStringNotContainsString('svg class="w-4 h-4 text-gray-400 absolute left-2.5', $html);
+    }
+
+    public function test_loan_and_return_asset_render_unified_searchable_combobox(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        // Test LoanAsset
+        Livewire::actingAs($admin)
+            ->test(LoanAsset::class)
+            ->assertSeeHtml('-- Select Available Asset (browse list or search) --')
+            ->assertSeeHtml('filteredAssets');
+
+        // Test ReturnAsset
+        Livewire::actingAs($admin)
+            ->test(ReturnAsset::class)
+            ->assertSeeHtml('-- Select Asset to Return (browse list or search) --')
+            ->assertSeeHtml('filteredAssets');
     }
 }

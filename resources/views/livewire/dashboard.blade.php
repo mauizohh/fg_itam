@@ -185,9 +185,11 @@
                             @endif
                         </td>
                         <td>
-                            <span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-semibold whitespace-nowrap">
-                                {{ $activity->clean_user }}
-                            </span>
+                            @if ($activity->clean_user)
+                                <span class="font-medium text-gray-900 text-xs">{{ $activity->clean_user }}</span>
+                            @else
+                                <span class="text-gray-400 text-xs">—</span>
+                            @endif
                         </td>
                         <td>
                             @if ($employeeName !== '—')

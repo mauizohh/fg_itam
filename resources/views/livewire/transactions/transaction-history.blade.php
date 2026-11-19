@@ -49,7 +49,7 @@
                         <th>From</th>
                         <th>To / Dept</th>
                         <th>Location</th>
-                        <th>Condition</th>
+                        <th class="text-center">Condition</th>
                         <th>Performed By</th>
                         <th>Remarks</th>
                     </tr>
@@ -89,7 +89,7 @@
                                 @endif
                             </td>
                             <td class="text-xs text-gray-600">{{ $tx->to_location ?: '—' }}</td>
-                            <td class="text-xs text-gray-600">{{ $tx->condition_at_time ?: '—' }}</td>
+                            <td class="text-xs text-gray-600 text-center">{{ $tx->condition_at_time ?: '—' }}</td>
                             <td class="text-xs text-gray-600">{{ $tx->performed_by ? \App\Models\User::cleanDisplayName($tx->performed_by) : 'System' }}</td>
                             <td class="text-xs text-gray-500 max-w-xs">{{ $tx->remarks ?: '—' }}</td>
                         </tr>

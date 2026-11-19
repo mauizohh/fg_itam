@@ -55,8 +55,9 @@
                     <th>Assigned To</th>
                     <th>Department</th>
                     <th>Assigned Date</th>
+                    <th class="text-center w-28">Condition</th>
                     <th>Status</th>
-                    <th class="text-center">Action</th>
+                    <th class="text-center w-24">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -74,23 +75,34 @@
                     <td class="font-semibold text-gray-800">{{ $item->display_assigned_user }}</td>
                     <td>{{ $item->department ?: 'General' }}</td>
                     <td class="text-xs text-gray-600">{{ $item->assigned_date ? \Carbon\Carbon::parse($item->assigned_date)->format('d M Y') : '10 Aug 2026' }}</td>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center">
+                            <span class="px-2.5 py-0.5 rounded text-xs font-semibold {{ $item->condition === 'New' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
+                                {{ $item->condition ?: 'Good' }}
+                            </span>
+                        </div>
+                    </td>
                     <td>
                         <span class="pill normal">Assigned</span>
                     </td>
                     <td class="text-center">
-                        <div class="flex items-center justify-center gap-1.5">
-                            <a href="{{ route('transactions.return') }}?asset_id={{ $item->id }}" class="text-xs font-semibold px-2.5 py-1 rounded border border-gray-200 hover:bg-red-50 text-gray-700 hover:text-[#a92d31] transition">
-                                Return
-                            </a>
-                            <a href="{{ route('transactions.transfer') }}?asset_id={{ $item->id }}" class="text-xs font-semibold px-2.5 py-1 rounded border border-gray-200 hover:bg-gray-100 text-gray-700 transition">
-                                Transfer
-                            </a>
+                        <div class="flex items-center justify-center">
+                            <x-table-dropdown>
+                                <x-slot:trigger>
+                                    <button type="button" class="kebab-btn" title="Actions">
+                                        <x-icon name="ellipsis-vertical" class="w-5 h-5 text-gray-500 hover:text-gray-900" />
+                                    </button>
+                                </x-slot:trigger>
+                                <x-table-dropdown.item href="{{ route('assets.detail', $item->id) }}" label="View Details" icon="eye" />
+                                <x-table-dropdown.item href="{{ route('transactions.transfer') }}?asset_id={{ $item->id }}" label="Transfer" icon="arrows-right-left" />
+                                <x-table-dropdown.item href="{{ route('transactions.return') }}?asset_id={{ $item->id }}" label="Return" icon="arrow-uturn-left" />
+                            </x-table-dropdown>
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-8 text-gray-400">
+                    <td colspan="8" class="text-center py-8 text-gray-400">
                         No assignments matching filter.
                     </td>
                 </tr>

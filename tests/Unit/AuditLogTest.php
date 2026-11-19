@@ -4,7 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\Asset;
 use App\Models\AuditLog;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class AuditLogTest extends TestCase
 {
@@ -64,7 +64,7 @@ class AuditLogTest extends TestCase
 
     public function test_scopes_can_be_invoked_without_bad_method_call(): void
     {
-        $log = new AuditLog();
+        $log = new AuditLog;
         $query = $log->newQuery();
 
         // Test standard Laravel scope call

@@ -56,7 +56,7 @@
                     <th>Vendor</th>
                     <th>Sent</th>
                     <th>Target Return</th>
-                    <th>Status</th>
+                    <th class="text-center w-28">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -77,8 +77,10 @@
                     <td class="text-xs font-semibold {{ $rpr->status === 'Overdue' ? 'text-red-600' : 'text-gray-600' }}">
                         {{ $rpr->target_return_date ? \Carbon\Carbon::parse($rpr->target_return_date)->format('d M') : '-' }}
                     </td>
-                    <td>
-                        <span class="{{ $rpr->status_pill_class }}">{{ $rpr->status }}</span>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center">
+                            <span class="{{ $rpr->status_pill_class }}">{{ $rpr->status }}</span>
+                        </div>
                     </td>
                 </tr>
                 @endforeach

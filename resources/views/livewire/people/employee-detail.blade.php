@@ -61,7 +61,7 @@
                     <th>Asset ID</th>
                     <th>Asset</th>
                     <th>Assigned Date</th>
-                    <th>Condition</th>
+                    <th class="text-center">Condition</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -75,7 +75,7 @@
                     </td>
                     <td class="font-bold text-gray-800">{{ $item->name }}</td>
                     <td class="text-xs text-gray-600">{{ $item->assigned_date ? \Carbon\Carbon::parse($item->assigned_date)->format('d M Y') : '10 Aug 2026' }}</td>
-                    <td>
+                    <td class="text-center">
                         <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">
                             {{ $item->condition ?: 'Good' }}
                         </span>

@@ -33,6 +33,8 @@ class AssetDetail extends Component
 
     public ?string $editPurchaseDate = null;
 
+    public ?string $initialPurchaseDate = null;
+
     public ?float $editPurchaseCost = null;
 
     public ?string $editWarrantyProvider = null;
@@ -71,15 +73,35 @@ class AssetDetail extends Component
             : Location::OFFICE_OPTIONS[0];
         $this->editCondition = (string) ($asset->condition ?: 'Good');
         $this->editPurchaseDate = $asset->purchase_date ? substr((string) $asset->purchase_date, 0, 10) : null;
+        $this->initialPurchaseDate = $this->editPurchaseDate;
         $this->editPurchaseCost = $asset->purchase_cost ? (float) $asset->purchase_cost : null;
         $this->editWarrantyProvider = (string) ($asset->warranty_provider ?? '');
-        $this->editWarrantyStart = $asset->warranty_start ? substr((string) $asset->warranty_start, 0, 10) : null;
+        $this->editWarrantyStart = $asset->warranty_start
+            ? substr((string) $asset->warranty_start, 0, 10)
+            : ($this->editPurchaseDate ?: null);
         $this->editWarrantyEnd = $asset->warranty_end ? substr((string) $asset->warranty_end, 0, 10) : null;
-        $this->editReplacementDue = (string) ($asset->replacement_due ?? '');
+
+        $parsedDue = null;
+        if (! empty($asset->replacement_due)) {
+            try {
+                $parsedDue = Carbon::parse($asset->replacement_due)->format('Y-m-d');
+            } catch (\Throwable) {
+                $parsedDue = null;
+            }
+        }
+        $this->editReplacementDue = $parsedDue;
         $this->editRemarks = (string) ($asset->remarks ?? '');
 
         $this->resetValidation();
         $this->showEditModal = true;
+    }
+
+    public function updatedEditPurchaseDate(?string $value): void
+    {
+        if (empty($this->editWarrantyStart) || $this->editWarrantyStart === $this->initialPurchaseDate) {
+            $this->editWarrantyStart = $value;
+        }
+        $this->initialPurchaseDate = $value;
     }
 
     public function cancelEditModal(): void

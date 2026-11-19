@@ -69,8 +69,8 @@
                     <th>Asset</th>
                     <th>Model</th>
                     <th>Location</th>
-                    <th>Condition</th>
-                    <th class="text-center">Action</th>
+                    <th class="text-center w-28">Condition</th>
+                    <th class="text-center w-24">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,15 +84,19 @@
                     <td class="font-bold text-gray-800">{{ $asset->category_name }}</td>
                     <td class="text-gray-600">{{ $asset->model }}</td>
                     <td>{{ $asset->assigned_location }}</td>
-                    <td>
-                        <span class="px-2 py-0.5 rounded text-xs font-semibold {{ $asset->condition === 'New' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
-                            {{ $asset->condition }}
-                        </span>
+                    <td class="text-center">
+                        <div class="flex items-center justify-center">
+                            <span class="px-2.5 py-0.5 rounded text-xs font-semibold {{ $asset->condition === 'New' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
+                                {{ $asset->condition }}
+                            </span>
+                        </div>
                     </td>
                     <td class="text-center">
-                        <a href="{{ route('transactions.assign') }}?asset_id={{ $asset->id }}" class="inline-flex items-center text-xs font-bold px-3 py-1 rounded bg-[#f1f5f9] hover:bg-[#a92d31] hover:text-white transition border border-gray-200">
-                            Assign
-                        </a>
+                        <div class="flex items-center justify-center">
+                            <a href="{{ route('transactions.assign') }}?asset_id={{ $asset->id }}" class="inline-flex items-center justify-center text-xs font-bold px-3 py-1 rounded bg-[#f1f5f9] hover:bg-[#a92d31] hover:text-white transition border border-gray-200">
+                                Assign
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 @empty

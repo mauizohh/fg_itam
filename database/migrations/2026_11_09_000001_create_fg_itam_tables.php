@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Categories
-        if (!Schema::hasTable('fg_itam_categories')) {
+        if (! Schema::hasTable('fg_itam_categories')) {
             Schema::create('fg_itam_categories', function (Blueprint $table) {
                 $table->string('id', 10)->primary(); // LAP, DSK, MON, MOB, SRV, NET, PRN, ACC
                 $table->string('name', 100);
@@ -22,7 +22,7 @@ return new class extends Migration
         }
 
         // 2. Locations
-        if (!Schema::hasTable('fg_itam_locations')) {
+        if (! Schema::hasTable('fg_itam_locations')) {
             Schema::create('fg_itam_locations', function (Blueprint $table) {
                 $table->id();
                 $table->string('country', 100)->default('Malaysia');
@@ -35,7 +35,7 @@ return new class extends Migration
         }
 
         // 3. Departments
-        if (!Schema::hasTable('fg_itam_departments')) {
+        if (! Schema::hasTable('fg_itam_departments')) {
             Schema::create('fg_itam_departments', function (Blueprint $table) {
                 $table->id();
                 $table->string('name', 100)->unique();
@@ -51,7 +51,7 @@ return new class extends Migration
         }
 
         // 4. Employees
-        if (!Schema::hasTable('fg_itam_employees')) {
+        if (! Schema::hasTable('fg_itam_employees')) {
             Schema::create('fg_itam_employees', function (Blueprint $table) {
                 $table->id();
                 $table->string('employee_id', 50)->nullable();
@@ -69,7 +69,7 @@ return new class extends Migration
         }
 
         // 5. Suppliers
-        if (!Schema::hasTable('fg_itam_suppliers')) {
+        if (! Schema::hasTable('fg_itam_suppliers')) {
             Schema::create('fg_itam_suppliers', function (Blueprint $table) {
                 $table->id();
                 $table->string('name', 150);
@@ -84,7 +84,7 @@ return new class extends Migration
         }
 
         // 6. Purchases
-        if (!Schema::hasTable('fg_itam_purchases')) {
+        if (! Schema::hasTable('fg_itam_purchases')) {
             Schema::create('fg_itam_purchases', function (Blueprint $table) {
                 $table->string('id', 50)->primary(); // PUR-2026-0148
                 $table->string('supplier_name', 150);
@@ -98,7 +98,7 @@ return new class extends Migration
         }
 
         // 7. Purchase Orders
-        if (!Schema::hasTable('fg_itam_purchase_orders')) {
+        if (! Schema::hasTable('fg_itam_purchase_orders')) {
             Schema::create('fg_itam_purchase_orders', function (Blueprint $table) {
                 $table->string('id', 50)->primary(); // PO-2026-0088
                 $table->string('supplier_name', 150);
@@ -112,7 +112,7 @@ return new class extends Migration
         }
 
         // 8. Repairs
-        if (!Schema::hasTable('fg_itam_repairs')) {
+        if (! Schema::hasTable('fg_itam_repairs')) {
             Schema::create('fg_itam_repairs', function (Blueprint $table) {
                 $table->string('id', 50)->primary(); // RPR-0261
                 $table->string('asset_id', 50);
@@ -128,7 +128,7 @@ return new class extends Migration
         }
 
         // 9. Software
-        if (!Schema::hasTable('fg_itam_software')) {
+        if (! Schema::hasTable('fg_itam_software')) {
             Schema::create('fg_itam_software', function (Blueprint $table) {
                 $table->id();
                 $table->string('name', 150);
@@ -142,7 +142,7 @@ return new class extends Migration
         }
 
         // 10. Licenses
-        if (!Schema::hasTable('fg_itam_licenses')) {
+        if (! Schema::hasTable('fg_itam_licenses')) {
             Schema::create('fg_itam_licenses', function (Blueprint $table) {
                 $table->id();
                 $table->string('software_name', 150);
@@ -156,7 +156,7 @@ return new class extends Migration
         }
 
         // 11. Renewals
-        if (!Schema::hasTable('fg_itam_renewals')) {
+        if (! Schema::hasTable('fg_itam_renewals')) {
             Schema::create('fg_itam_renewals', function (Blueprint $table) {
                 $table->string('id', 50)->primary(); // REN-0091
                 $table->string('service_name', 150);
@@ -169,7 +169,7 @@ return new class extends Migration
         }
 
         // 12. Audits
-        if (!Schema::hasTable('fg_itam_audits')) {
+        if (! Schema::hasTable('fg_itam_audits')) {
             Schema::create('fg_itam_audits', function (Blueprint $table) {
                 $table->string('id', 50)->primary(); // AUD-2026-006
                 $table->string('name', 150);
@@ -185,7 +185,7 @@ return new class extends Migration
         }
 
         // 13. Audit Exceptions
-        if (!Schema::hasTable('fg_itam_audit_exceptions')) {
+        if (! Schema::hasTable('fg_itam_audit_exceptions')) {
             Schema::create('fg_itam_audit_exceptions', function (Blueprint $table) {
                 $table->id();
                 $table->string('asset_id', 50);
@@ -200,7 +200,7 @@ return new class extends Migration
         }
 
         // 14. Transactions (Assign, Return, Transfer, Loan)
-        if (!Schema::hasTable('fg_itam_transactions')) {
+        if (! Schema::hasTable('fg_itam_transactions')) {
             Schema::create('fg_itam_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->string('type', 50); // Assign, Return, Transfer, Loan
@@ -226,7 +226,7 @@ return new class extends Migration
         }
 
         // 15. Audit Activity Logs
-        if (!Schema::hasTable('fg_itam_audit_logs')) {
+        if (! Schema::hasTable('fg_itam_audit_logs')) {
             Schema::create('fg_itam_audit_logs', function (Blueprint $table) {
                 $table->id();
                 $table->dateTime('timestamp');
@@ -241,7 +241,7 @@ return new class extends Migration
         }
 
         // 16. System Settings
-        if (!Schema::hasTable('fg_itam_settings')) {
+        if (! Schema::hasTable('fg_itam_settings')) {
             Schema::create('fg_itam_settings', function (Blueprint $table) {
                 $table->string('key', 100)->primary();
                 $table->text('value')->nullable();
@@ -250,7 +250,7 @@ return new class extends Migration
         }
 
         // 17. Master Assets Table (fg_itam_assets)
-        if (!Schema::hasTable('fg_itam_assets')) {
+        if (! Schema::hasTable('fg_itam_assets')) {
             Schema::create('fg_itam_assets', function (Blueprint $table) {
                 // Primary Identifier matching exact specification: IT-DEVICE(3 ALPHABET)-YEAR-NUMBER 5 series
                 $table->string('id', 50)->primary();

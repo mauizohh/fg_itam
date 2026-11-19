@@ -63,16 +63,22 @@ class Asset extends Model
 
     /**
      * Cleaned assigned user name for UI display without category suffixes.
+     * When assigned_user is not set, displays department name instead of null/unassigned.
      */
     public function getDisplayAssignedUserAttribute(): ?string
     {
-        if (empty($this->assigned_user)) {
-            return null;
+        if (! empty($this->assigned_user)) {
+            $cleaned = User::cleanDisplayName($this->assigned_user);
+            if ($cleaned !== '') {
+                return $cleaned;
+            }
         }
 
-        $cleaned = User::cleanDisplayName($this->assigned_user);
+        if (! empty($this->department) && $this->status === 'Assigned') {
+            return $this->department;
+        }
 
-        return $cleaned !== '' ? $cleaned : null;
+        return ! empty($this->department) ? $this->department : null;
     }
 
     /**
@@ -80,12 +86,20 @@ class Asset extends Model
      */
     public function getFormattedAssignedAttribute(): string
     {
-        $displayUser = $this->display_assigned_user;
-        if (! empty($displayUser) && ! empty($this->department)) {
-            return "{$displayUser} ({$this->department})";
+        if (! empty($this->assigned_user)) {
+            $displayUser = User::cleanDisplayName($this->assigned_user);
+            if (! empty($this->department)) {
+                return "{$displayUser} ({$this->department})";
+            }
+
+            return $displayUser;
         }
 
-        return $displayUser ?: ($this->assigned_location ?: 'Unassigned');
+        if (! empty($this->department)) {
+            return $this->department;
+        }
+
+        return $this->assigned_location ?: 'Unassigned';
     }
 
     /**

@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -583,12 +584,12 @@ class DatabaseSeeder extends Seeder
             DB::table('fg_itam_assets')->updateOrInsert(['id' => $asset['id']], array_merge($asset, ['updated_at' => now(), 'created_at' => now()]));
 
             // Also synchronize with fg_helpdesk_assets to preserve cross-system link
-            if (\Illuminate\Support\Facades\Schema::hasTable('fg_helpdesk_assets')) {
+            if (Schema::hasTable('fg_helpdesk_assets')) {
                 DB::table('fg_helpdesk_assets')->updateOrInsert(
                     ['id' => $asset['id']],
                     [
                         'name' => $asset['name'],
-                        'assigned' => !empty($asset['assigned_user']) ? ($asset['assigned_user'] . (!empty($asset['department']) ? ' (' . $asset['department'] . ')' : '')) : 'Unassigned',
+                        'assigned' => ! empty($asset['assigned_user']) ? ($asset['assigned_user'].(! empty($asset['department']) ? ' ('.$asset['department'].')' : '')) : 'Unassigned',
                         'assigned_user' => $asset['assigned_user'] ?? '',
                         'assigned_department' => $asset['department'] ?? '',
                         'serial' => $asset['serial_number'] ?? '',

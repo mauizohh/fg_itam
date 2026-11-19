@@ -7,14 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 class Setting extends Model
 {
     protected $table = 'fg_itam_settings';
+
     protected $primaryKey = 'key';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     protected $guarded = [];
 
     public static function get(string $key, $default = null)
     {
         $setting = static::find($key);
+
         return $setting ? $setting->value : $default;
     }
 

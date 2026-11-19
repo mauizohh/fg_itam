@@ -109,12 +109,29 @@
                     @endif
                 </div>
                 <div>
+                    <span class="text-gray-400 block text-[11px]">Warranty Provider</span>
+                    <span class="text-gray-800 font-medium">{{ $asset->warranty_provider ?: '—' }}</span>
+                </div>
+                <div>
                     <span class="text-gray-400 block text-[11px]">Warranty End</span>
-                    <span class="text-gray-800 font-medium">{{ $asset->warranty_end ? \Carbon\Carbon::parse($asset->warranty_end)->format('d M Y') : '01 Aug 2029' }}</span>
+                    <span class="text-gray-800 font-medium">{{ $asset->warranty_end ? \Carbon\Carbon::parse($asset->warranty_end)->format('d M Y') : '—' }}</span>
                 </div>
                 <div>
                     <span class="text-gray-400 block text-[11px]">Replacement</span>
-                    <span class="text-gray-800 font-medium">{{ $asset->replacement_due ?: 'Aug 2030' }}</span>
+                    <span class="text-gray-800 font-medium">
+                        @if ($asset->replacement_due)
+                            @php
+                                try {
+                                    $formattedDue = \Carbon\Carbon::parse($asset->replacement_due)->format('d M Y');
+                                } catch (\Throwable) {
+                                    $formattedDue = $asset->replacement_due;
+                                }
+                            @endphp
+                            {{ $formattedDue }}
+                        @else
+                            —
+                        @endif
+                    </span>
                 </div>
             </div>
         </div>
@@ -174,9 +191,9 @@
 
     <!-- Edit Asset Modal -->
     @if ($showEditModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="edit-asset-title">
-            <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 my-8">
-                <div class="flex items-center justify-between border-b pb-3">
+        <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="edit-asset-title">
+            <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl my-auto">
+                <div class="flex items-center justify-between border-b px-6 py-4 flex-shrink-0">
                     <div>
                         <h3 id="edit-asset-title" class="font-heading font-bold text-lg text-[#a92d31]">Edit Asset Details</h3>
                         <p class="text-xs text-gray-500 mt-0.5">Asset ID: <strong class="font-mono text-[#a92d31]">{{ $assetId }}</strong></p>
@@ -184,105 +201,107 @@
                     <button type="button" wire:click="cancelEditModal" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
                 </div>
 
-                <form wire:submit.prevent="saveAssetEdit" class="space-y-4 text-xs">
-                    <!-- General Details -->
-                    <div class="space-y-3">
-                        <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-600 border-b pb-1">1. Equipment Identification</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="sm:col-span-2">
-                                <label class="block font-bold text-gray-700 mb-1">Asset Name / Title *</label>
-                                <input type="text" wire:model="editName" class="itam-input text-xs" required>
-                                @error('editName') <span class="text-red-500">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block font-bold text-gray-700 mb-1">Brand</label>
-                                <input type="text" wire:model="editBrand" placeholder="e.g. Dell, HP, Apple" class="itam-input text-xs">
-                                @error('editBrand') <span class="text-red-500">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block font-bold text-gray-700 mb-1">Model</label>
-                                <input type="text" wire:model="editModel" placeholder="e.g. Latitude 7450" class="itam-input text-xs">
-                                @error('editModel') <span class="text-red-500">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block font-bold text-gray-700 mb-1">Serial Number *</label>
-                                <input type="text" wire:model="editSerial" class="itam-input font-mono text-xs" required>
-                                @error('editSerial') <span class="text-red-500">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block font-bold text-gray-700 mb-1">Condition</label>
-                                <select wire:model="editCondition" class="itam-select text-xs">
-                                    <option value="New">New</option>
-                                    <option value="Good">Good</option>
-                                    <option value="Fair">Fair</option>
-                                    <option value="Damaged">Damaged</option>
-                                </select>
-                                @error('editCondition') <span class="text-red-500">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Location -->
-                    <div class="space-y-3 pt-2">
-                        <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-600 border-b pb-1">2. Location</h4>
-                        <div>
-                            <label class="block font-bold text-gray-700 mb-1">Assigned Location</label>
-                            <select wire:model="editLocation" class="itam-select text-xs">
-                                @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
-                                    <option value="{{ $office }}">{{ $office }}</option>
-                                @endforeach
-                            </select>
-                            @error('editLocation') <span class="text-red-500">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
-
-                    <!-- Lifecycle & Warranty -->
-                    <div class="space-y-3 pt-2">
-                        <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-600 border-b pb-1">3. Procurement &amp; Warranty</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-bold text-gray-700 mb-1">Purchase Date</label>
-                                <input type="date" wire:model="editPurchaseDate" class="itam-input text-xs">
-                                @error('editPurchaseDate') <span class="text-red-500">{{ $message }}</span> @enderror
-                            </div>
-                            @if (auth()->user()?->canViewFinancialData())
-                                <div>
-                                    <label class="block font-bold text-gray-700 mb-1">Purchase Cost (MYR)</label>
-                                    <input type="number" step="0.01" wire:model="editPurchaseCost" placeholder="0.00" class="itam-input text-xs">
-                                    @error('editPurchaseCost') <span class="text-red-500">{{ $message }}</span> @enderror
+                <form wire:submit.prevent="saveAssetEdit" class="flex flex-col flex-1 min-h-0">
+                    <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1">
+                        <!-- General Details -->
+                        <div class="space-y-3">
+                            <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-600 border-b pb-1">1. Equipment Identification</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label class="block font-bold text-gray-700 mb-1">Asset Name / Title *</label>
+                                    <input type="text" wire:model="editName" class="itam-input text-xs" required>
+                                    @error('editName') <span class="text-red-500">{{ $message }}</span> @enderror
                                 </div>
-                            @endif
-                            <div>
-                                <label class="block font-bold text-gray-700 mb-1">Warranty Provider</label>
-                                <input type="text" wire:model="editWarrantyProvider" placeholder="e.g. Dell Support, AppleCare, Vendor Support" class="itam-input text-xs">
-                                @error('editWarrantyProvider') <span class="text-red-500">{{ $message }}</span> @enderror
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Brand</label>
+                                    <input type="text" wire:model="editBrand" placeholder="e.g. Dell, HP, Apple" class="itam-input text-xs">
+                                    @error('editBrand') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Model</label>
+                                    <input type="text" wire:model="editModel" placeholder="e.g. Latitude 7450" class="itam-input text-xs">
+                                    @error('editModel') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Serial Number *</label>
+                                    <input type="text" wire:model="editSerial" class="itam-input font-mono text-xs" required>
+                                    @error('editSerial') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Condition</label>
+                                    <select wire:model="editCondition" class="itam-select text-xs">
+                                        <option value="New">New</option>
+                                        <option value="Good">Good</option>
+                                        <option value="Fair">Fair</option>
+                                        <option value="Damaged">Damaged</option>
+                                    </select>
+                                    @error('editCondition') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="space-y-3 pt-2">
+                            <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-600 border-b pb-1">2. Location</h4>
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Replacement Due</label>
-                                <input type="text" wire:model="editReplacementDue" placeholder="e.g. Aug 2030" class="itam-input text-xs">
-                                @error('editReplacementDue') <span class="text-red-500">{{ $message }}</span> @enderror
+                                <label class="block font-bold text-gray-700 mb-1">Assigned Location</label>
+                                <select wire:model="editLocation" class="itam-select text-xs">
+                                    @foreach (\App\Models\Location::OFFICE_OPTIONS as $office)
+                                        <option value="{{ $office }}">{{ $office }}</option>
+                                    @endforeach
+                                </select>
+                                @error('editLocation') <span class="text-red-500">{{ $message }}</span> @enderror
                             </div>
-                            <div>
-                                <label class="block font-bold text-gray-700 mb-1">Warranty Start Date</label>
-                                <input type="date" wire:model="editWarrantyStart" class="itam-input text-xs">
-                                @error('editWarrantyStart') <span class="text-red-500">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Lifecycle & Warranty -->
+                        <div class="space-y-3 pt-2">
+                            <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-600 border-b pb-1">3. Procurement &amp; Warranty</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Purchase Date</label>
+                                    <input type="date" wire:model.live="editPurchaseDate" class="itam-input text-xs">
+                                    @error('editPurchaseDate') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
+                                @if (auth()->user()?->canViewFinancialData())
+                                    <div>
+                                        <label class="block font-bold text-gray-700 mb-1">Purchase Cost (MYR)</label>
+                                        <input type="number" step="0.01" wire:model="editPurchaseCost" placeholder="0.00" class="itam-input text-xs">
+                                        @error('editPurchaseCost') <span class="text-red-500">{{ $message }}</span> @enderror
+                                    </div>
+                                @endif
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Warranty Provider</label>
+                                    <input type="text" wire:model="editWarrantyProvider" placeholder="e.g. Dell Support, AppleCare, Vendor Support" class="itam-input text-xs">
+                                    @error('editWarrantyProvider') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Replacement Due</label>
+                                    <input type="date" wire:model="editReplacementDue" class="itam-input text-xs">
+                                    @error('editReplacementDue') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Warranty Start Date</label>
+                                    <input type="date" wire:model="editWarrantyStart" class="itam-input text-xs">
+                                    @error('editWarrantyStart') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-gray-700 mb-1">Warranty End Date</label>
+                                    <input type="date" wire:model="editWarrantyEnd" class="itam-input text-xs">
+                                    @error('editWarrantyEnd') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
                             </div>
-                            <div>
-                                <label class="block font-bold text-gray-700 mb-1">Warranty End Date</label>
-                                <input type="date" wire:model="editWarrantyEnd" class="itam-input text-xs">
-                                @error('editWarrantyEnd') <span class="text-red-500">{{ $message }}</span> @enderror
-                            </div>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="space-y-2 pt-2">
+                            <label class="block font-bold text-gray-700 mb-1">Operational Remarks / Notes</label>
+                            <textarea wire:model="editRemarks" rows="2" placeholder="Lifecycle notes, upgrades, or remarks..." class="itam-input text-xs py-2"></textarea>
+                            @error('editRemarks') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
-                    <!-- Remarks -->
-                    <div class="space-y-2 pt-2">
-                        <label class="block font-bold text-gray-700 mb-1">Operational Remarks / Notes</label>
-                        <textarea wire:model="editRemarks" rows="2" placeholder="Lifecycle notes, upgrades, or remarks..." class="itam-input text-xs py-2"></textarea>
-                        @error('editRemarks') <span class="text-red-500">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="flex items-center justify-end gap-2 pt-3 border-t">
+                    <div class="flex items-center justify-end gap-2 px-6 py-4 border-t bg-gray-50 rounded-b-2xl flex-shrink-0">
                         <button type="button" wire:click="cancelEditModal" class="btn-secondary text-xs">Cancel</button>
                         <button type="submit" class="btn-primary text-xs">Save Changes</button>
                     </div>

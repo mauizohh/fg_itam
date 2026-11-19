@@ -22,9 +22,9 @@ class AssetApiController extends Controller
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhere('serial_number', 'like', "%{$search}%")
-                  ->orWhere('assigned_user', 'like', "%{$search}%");
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('serial_number', 'like', "%{$search}%")
+                    ->orWhere('assigned_user', 'like', "%{$search}%");
             });
         }
 
@@ -37,7 +37,7 @@ class AssetApiController extends Controller
     public function show(string $id): JsonResponse
     {
         $asset = Asset::find($id);
-        if (!$asset) {
+        if (! $asset) {
             return response()->json(['status' => 'error', 'message' => 'Asset not found'], 404);
         }
 

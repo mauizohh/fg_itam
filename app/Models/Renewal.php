@@ -7,13 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class Renewal extends Model
 {
     protected $table = 'fg_itam_renewals';
+
     protected $keyType = 'string';
+
     public $incrementing = false;
+
     protected $guarded = [];
 
     public function getStatusPillClassAttribute(): string
     {
         $status = strtolower($this->status);
+
         return match ($status) {
             'approval needed' => 'pill high',
             'in review' => 'pill normal',

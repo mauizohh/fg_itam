@@ -48,7 +48,8 @@ class AssetIdGeneratorService
 
         // Fallback: take first 3 alphabets
         $lettersOnly = preg_replace('/[^A-Za-z]/', '', $upper);
-        return substr($lettersOnly . 'DEV', 0, 3);
+
+        return substr($lettersOnly.'DEV', 0, 3);
     }
 
     /**
@@ -87,6 +88,7 @@ class AssetIdGeneratorService
         }
 
         $nextNumber = str_pad($highest + 1, 5, '0', STR_PAD_LEFT);
+
         return "{$prefix}{$nextNumber}";
     }
 

@@ -16,6 +16,10 @@ class AssignAsset extends Component
 {
     public string $assetId = '';
 
+    public string $assetSearch = '';
+
+    public string $categoryFilter = '';
+
     public string $assignTo = '';
 
     public string $department = 'Finance';
@@ -77,17 +81,20 @@ class AssignAsset extends Component
         abort_unless($actor->hasPermission('transactions.manage'), 403);
 
         $this->validate([
-            'assetId' => 'required',
-            'assignTo' => 'required',
+            'assetId' => 'required|exists:fg_itam_assets,id',
+            'department' => 'required|string|max:100',
+            'assignTo' => 'nullable|string|max:150',
             'location' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
         ]);
 
         $asset = Asset::find($this->assetId);
         if ($asset) {
             $oldUser = $asset->assigned_user;
+            $assignedUser = trim($this->assignTo) !== '' ? trim($this->assignTo) : null;
+
             $asset->update([
                 'status' => 'Assigned',
-                'assigned_user' => $this->assignTo,
+                'assigned_user' => $assignedUser,
                 'department' => $this->department,
                 'assigned_location' => $this->location,
                 'assigned_date' => $this->assignedDate,
@@ -99,7 +106,7 @@ class AssignAsset extends Component
             Transaction::create([
                 'type' => 'Assign',
                 'asset_id' => $asset->id,
-                'to_user' => $this->assignTo,
+                'to_user' => $assignedUser,
                 'to_department' => $this->department,
                 'to_location' => $this->location,
                 'transaction_date' => $this->assignedDate,
@@ -109,10 +116,15 @@ class AssignAsset extends Component
                 'performed_by' => $actor->display_name,
             ]);
 
-            AuditLogService::record('Assign asset', 'Asset', $asset->id, $oldUser ?: 'Jitra Office', "Assigned to {$this->assignTo}");
-        }
+            $targetDesc = $assignedUser
+                ? "Assigned to {$assignedUser} ({$this->department})"
+                : "Assigned to {$this->department} department";
 
-        session()->flash('success', "Asset {$this->assetId} assigned to {$this->assignTo} successfully!");
+            AuditLogService::record('Assign asset', 'Asset', $asset->id, $oldUser ?: $asset->assigned_location, $targetDesc);
+
+            $targetLabel = $assignedUser ?: $this->department;
+            session()->flash('success', "Asset {$this->assetId} assigned to {$targetLabel} successfully!");
+        }
 
         return redirect()->route('assets.assigned');
     }
@@ -123,14 +135,30 @@ class AssignAsset extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('transactions.manage'), 403);
 
-        $availableAssets = Asset::where('status', 'Available')
-            ->when($this->assetId !== '', fn ($q) => $q->orWhere('id', $this->assetId))
-            ->orderBy('id')
-            ->get();
+        $query = Asset::query()->where('status', 'Available');
+
+        if ($this->categoryFilter !== '') {
+            $query->where('category_id', $this->categoryFilter);
+        }
+
+        if (trim($this->assetSearch) !== '') {
+            $term = trim($this->assetSearch);
+            $query->where(function ($sq) use ($term) {
+                $sq->where('id', 'like', "%{$term}%")
+                    ->orWhere('name', 'like', "%{$term}%")
+                    ->orWhere('brand', 'like', "%{$term}%")
+                    ->orWhere('model', 'like', "%{$term}%")
+                    ->orWhere('serial_number', 'like', "%{$term}%");
+            });
+        }
+
+        $availableAssets = $query->orderBy('id')->get();
+
+        $selectedAsset = $this->assetId ? Asset::find($this->assetId) : null;
         $employees = Employee::where('status', 'Active')->get();
         $departments = Department::all();
 
-        return view('livewire.transactions.assign-asset', compact('availableAssets', 'employees', 'departments'))
+        return view('livewire.transactions.assign-asset', compact('availableAssets', 'selectedAsset', 'employees', 'departments'))
             ->layout('layouts.app', ['title' => 'Assign Asset', 'breadcrumb' => 'IT Asset Management / Transactions / Assign Asset']);
     }
 }

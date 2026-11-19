@@ -17,8 +17,8 @@ use Livewire\WithPagination;
 class Dashboard extends Component
 {
     use WithPagination;
-
     use WithPagination;
+
     public function render()
     {
         /** @var User $actor */
