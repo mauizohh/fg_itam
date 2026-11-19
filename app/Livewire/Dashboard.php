@@ -12,9 +12,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Dashboard extends Component
 {
+    use WithPagination;
+
+    use WithPagination;
     public function render()
     {
         /** @var User $actor */
@@ -67,10 +71,10 @@ class Dashboard extends Component
             $activityQuery->forDepartment($actor->departmentScopeNames(), $deptAssetIds);
         }
 
-        $recentActivities = $activityQuery->limit(8)->get();
+        $recentActivities = $activityQuery->paginate(5);
 
         // Fetch corresponding assets for metadata (name, model, current custodian)
-        $activityAssetIds = $recentActivities->pluck('object_id')->unique()->filter()->values();
+        $activityAssetIds = collect($recentActivities->items())->pluck('object_id')->unique()->filter()->values();
         $activityAssets = Asset::whereIn('id', $activityAssetIds)->get()->keyBy('id');
 
         return view('livewire.dashboard', compact(

@@ -206,5 +206,9 @@
                 @endforelse
             </tbody>
         </table>
+
+        <x-slot:pagination>
+            {{ $recentActivities->links() }}
+        </x-slot:pagination>
     </x-table-section>
 </div>

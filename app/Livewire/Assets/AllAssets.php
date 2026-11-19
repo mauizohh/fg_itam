@@ -45,6 +45,45 @@ class AllAssets extends Component
 
     public ?float $newCost = null;
 
+    public ?string $newPurchaseDate = null;
+
+    public ?string $newWarrantyProvider = null;
+
+    public ?string $newWarrantyStart = null;
+
+    public ?string $newWarrantyEnd = null;
+
+    // Modal state for Edit Asset
+    public bool $showEditModal = false;
+
+    public string $editId = '';
+
+    public string $editName = '';
+
+    public string $editBrand = '';
+
+    public string $editModel = '';
+
+    public string $editSerial = '';
+
+    public string $editLocation = 'Jitra Office';
+
+    public string $editCondition = 'Good';
+
+    public ?string $editPurchaseDate = null;
+
+    public ?float $editPurchaseCost = null;
+
+    public ?string $editWarrantyProvider = null;
+
+    public ?string $editWarrantyStart = null;
+
+    public ?string $editWarrantyEnd = null;
+
+    public ?string $editReplacementDue = null;
+
+    public string $editRemarks = '';
+
     public function mount()
     {
         if (request()->has('search')) {
@@ -59,6 +98,7 @@ class AllAssets extends Component
         abort_unless($actor->hasPermission('assets.create'), 403);
 
         $this->newId = AssetIdGeneratorService::generate($this->newCategory);
+        $this->newPurchaseDate = now()->format('Y-m-d');
         $this->showAddModal = true;
     }
 
@@ -78,6 +118,10 @@ class AllAssets extends Component
             'newName' => 'required|string|max:255',
             'newSerial' => 'required|string|unique:fg_itam_assets,serial_number',
             'newLocation' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
+            'newPurchaseDate' => 'nullable|date',
+            'newWarrantyStart' => 'nullable|date',
+            'newWarrantyEnd' => 'nullable|date',
+            'newWarrantyProvider' => 'nullable|string|max:150',
         ]);
 
         $cat = Category::find($this->newCategory);
@@ -93,7 +137,11 @@ class AllAssets extends Component
             'serial_number' => $this->newSerial,
             'status' => $this->newStatus,
             'assigned_location' => $this->newLocation,
+            'purchase_date' => $this->newPurchaseDate ?: null,
             'purchase_cost' => $this->newCost ?: 0.00,
+            'warranty_start' => $this->newWarrantyStart ?: null,
+            'warranty_end' => $this->newWarrantyEnd ?: null,
+            'warranty_provider' => $this->newWarrantyProvider ?: null,
             'verification_status' => 'Verified',
             'last_physical_verification' => now(),
         ]);
@@ -101,8 +149,103 @@ class AllAssets extends Component
         AuditLogService::record('Register asset', 'Asset', $asset->id, null, "Registered in {$this->newLocation}");
 
         $this->showAddModal = false;
-        $this->reset(['newName', 'newBrand', 'newModel', 'newSerial', 'newCost']);
+        $this->reset(['newName', 'newBrand', 'newModel', 'newSerial', 'newCost', 'newPurchaseDate', 'newWarrantyProvider', 'newWarrantyStart', 'newWarrantyEnd']);
         session()->flash('success', "Asset {$asset->id} registered successfully!");
+    }
+
+    public function openEditModal(string $id): void
+    {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('assets.edit'), 403);
+
+        $asset = Asset::findOrFail($id);
+        $this->editId = $asset->id;
+        $this->editName = (string) $asset->name;
+        $this->editBrand = (string) ($asset->brand ?? '');
+        $this->editModel = (string) ($asset->model ?? '');
+        $this->editSerial = (string) $asset->serial_number;
+        $this->editLocation = in_array($asset->assigned_location, Location::OFFICE_OPTIONS, true)
+            ? $asset->assigned_location
+            : Location::OFFICE_OPTIONS[0];
+        $this->editCondition = (string) ($asset->condition ?: 'Good');
+        $this->editPurchaseDate = $asset->purchase_date ? substr((string) $asset->purchase_date, 0, 10) : null;
+        $this->editPurchaseCost = $asset->purchase_cost ? (float) $asset->purchase_cost : null;
+        $this->editWarrantyProvider = (string) ($asset->warranty_provider ?? '');
+        $this->editWarrantyStart = $asset->warranty_start ? substr((string) $asset->warranty_start, 0, 10) : null;
+        $this->editWarrantyEnd = $asset->warranty_end ? substr((string) $asset->warranty_end, 0, 10) : null;
+        $this->editReplacementDue = (string) ($asset->replacement_due ?? '');
+        $this->editRemarks = (string) ($asset->remarks ?? '');
+
+        $this->resetValidation();
+        $this->showEditModal = true;
+    }
+
+    public function cancelEditModal(): void
+    {
+        $this->showEditModal = false;
+        $this->resetValidation();
+    }
+
+    public function saveAssetEdit(): void
+    {
+        /** @var User $actor */
+        $actor = Auth::user();
+        abort_unless($actor->hasPermission('assets.edit'), 403);
+
+        $this->validate([
+            'editName' => 'required|string|max:255',
+            'editBrand' => 'nullable|string|max:100',
+            'editModel' => 'nullable|string|max:150',
+            'editSerial' => 'required|string|max:100|unique:fg_itam_assets,serial_number,'.$this->editId.',id',
+            'editLocation' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
+            'editCondition' => 'required|string|in:New,Good,Fair,Damaged',
+            'editPurchaseDate' => 'nullable|date',
+            'editPurchaseCost' => 'nullable|numeric|min:0',
+            'editWarrantyStart' => 'nullable|date',
+            'editWarrantyEnd' => 'nullable|date',
+            'editWarrantyProvider' => 'nullable|string|max:150',
+            'editReplacementDue' => 'nullable|string|max:50',
+            'editRemarks' => 'nullable|string|max:1000',
+        ]);
+
+        $asset = Asset::findOrFail($this->editId);
+
+        $beforeState = "Name: {$asset->name}, Serial: {$asset->serial_number}, Brand: {$asset->brand}, Warranty End: {$asset->warranty_end}";
+
+        $updateData = [
+            'name' => $this->editName,
+            'brand' => $this->editBrand ?: 'Standard',
+            'model' => $this->editModel ?: $this->editName,
+            'serial_number' => $this->editSerial,
+            'assigned_location' => $this->editLocation,
+            'condition' => $this->editCondition,
+            'purchase_date' => $this->editPurchaseDate ?: null,
+            'warranty_start' => $this->editWarrantyStart ?: null,
+            'warranty_end' => $this->editWarrantyEnd ?: null,
+            'warranty_provider' => $this->editWarrantyProvider ?: null,
+            'replacement_due' => $this->editReplacementDue ?: null,
+            'remarks' => $this->editRemarks ?: null,
+        ];
+
+        if ($actor->canViewFinancialData() && $this->editPurchaseCost !== null) {
+            $updateData['purchase_cost'] = $this->editPurchaseCost;
+        }
+
+        $asset->update($updateData);
+
+        $afterState = "Name: {$this->editName}, Serial: {$this->editSerial}, Brand: {$this->editBrand}, Warranty End: {$this->editWarrantyEnd}";
+
+        AuditLogService::record(
+            'Update asset details',
+            'Asset',
+            $asset->id,
+            $beforeState,
+            $afterState
+        );
+
+        $this->showEditModal = false;
+        session()->flash('success', "Asset {$asset->id} details updated successfully!");
     }
 
     public function render()

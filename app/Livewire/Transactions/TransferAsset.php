@@ -14,32 +14,60 @@ use Livewire\Component;
 
 class TransferAsset extends Component
 {
-    public string $assetId = 'IT-MON-2026-00391';
+    public string $assetId = '';
 
-    public string $currentCustodian = 'Sarah Lim';
+    public string $currentCustodian = '';
 
     public string $currentLocation = 'Jitra Office';
 
-    public string $transferTo = 'Daniel Wong';
+    public string $transferTo = '';
 
-    public string $newDepartment = 'Engineering';
+    public string $newDepartment = 'Finance';
 
     public string $newLocation = 'Kulim Office';
 
-    public string $effectiveDate = '2026-08-15';
+    public string $effectiveDate = '';
 
-    public string $reason = 'Role transfer';
+    public string $reason = '';
 
-    public function mount()
+    public function mount(): void
     {
-        if ($id = request()->query('asset_id')) {
-            $this->assetId = $id;
-            $asset = Asset::find($id);
-            if ($asset) {
-                $this->currentCustodian = $asset->display_assigned_user ?: 'Sarah Lim';
-                $this->currentLocation = $asset->assigned_location ?: 'Jitra Office';
-            }
+        $this->effectiveDate = now()->format('Y-m-d');
+
+        $requestedId = (string) request()->query('asset_id', '');
+        $asset = null;
+        if ($requestedId !== '') {
+            $asset = Asset::find($requestedId);
         }
+
+        if (! $asset) {
+            $asset = Asset::where('status', 'Assigned')->orderBy('id')->first();
+        }
+
+        if ($asset) {
+            $this->applyAssetDefaults($asset);
+        }
+    }
+
+    public function updatedAssetId(string $value): void
+    {
+        $asset = Asset::find($value);
+        if ($asset) {
+            $this->applyAssetDefaults($asset);
+        }
+    }
+
+    private function applyAssetDefaults(Asset $asset): void
+    {
+        $this->assetId = $asset->id;
+        $this->currentCustodian = $asset->display_assigned_user ?: ($asset->assigned_user ?: 'Unassigned');
+        $this->currentLocation = in_array($asset->assigned_location, Location::OFFICE_OPTIONS, true)
+            ? $asset->assigned_location
+            : Location::OFFICE_OPTIONS[0];
+        $this->newDepartment = $asset->department ?: 'Finance';
+        $this->newLocation = $this->currentLocation === Location::OFFICE_OPTIONS[0]
+            ? Location::OFFICE_OPTIONS[1]
+            : Location::OFFICE_OPTIONS[0];
     }
 
     public function submit()
@@ -89,7 +117,10 @@ class TransferAsset extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('transactions.manage'), 403);
 
-        $assets = Asset::all();
+        $assets = Asset::whereIn('status', ['Assigned', 'Loan'])
+            ->when($this->assetId !== '', fn ($q) => $q->orWhere('id', $this->assetId))
+            ->orderBy('id')
+            ->get();
         $employees = Employee::where('status', 'Active')->get();
         $departments = Department::all();
 

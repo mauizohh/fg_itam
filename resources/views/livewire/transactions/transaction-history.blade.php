@@ -72,7 +72,13 @@
                                 <span class="{{ $pill }}">{{ $tx->type }}</span>
                             </td>
                             <td>
-                                <div class="font-mono font-bold text-[#a92d31] text-xs">{{ $tx->asset_id }}</div>
+                                @if (auth()->user()?->hasPermission('assets.view'))
+                                    <a href="{{ route('assets.detail', $tx->asset_id) }}" class="font-mono font-bold text-[#a92d31] text-xs hover:underline block">
+                                        {{ $tx->asset_id }}
+                                    </a>
+                                @else
+                                    <div class="font-mono font-bold text-[#a92d31] text-xs">{{ $tx->asset_id }}</div>
+                                @endif
                                 <div class="text-xs text-gray-600">{{ $tx->asset_name ?? '—' }}</div>
                             </td>
                             <td class="text-xs text-gray-600">{{ $tx->from_user ? \App\Models\User::cleanDisplayName($tx->from_user) : 'Jitra Office' }}</td>

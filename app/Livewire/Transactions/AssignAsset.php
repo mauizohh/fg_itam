@@ -14,29 +14,60 @@ use Livewire\Component;
 
 class AssignAsset extends Component
 {
-    public string $assetId = 'IT-LAP-2026-00418';
+    public string $assetId = '';
 
-    public string $assignTo = 'Sarah Lim';
+    public string $assignTo = '';
 
     public string $department = 'Finance';
 
     public string $location = 'Jitra Office';
 
-    public string $assignedDate = '2026-08-14';
+    public string $assignedDate = '';
 
     public string $expectedReturn = 'Not required';
 
     public string $condition = 'Good';
 
-    public string $accessories = 'Charger, Dock';
+    public string $accessories = '';
 
-    public string $remarks = 'Standard employee laptop assignment';
+    public string $remarks = '';
 
-    public function mount()
+    public function mount(): void
     {
-        if ($id = request()->query('asset_id')) {
-            $this->assetId = $id;
+        $this->assignedDate = now()->format('Y-m-d');
+
+        $requestedId = (string) request()->query('asset_id', '');
+        $asset = null;
+        if ($requestedId !== '') {
+            $asset = Asset::find($requestedId);
         }
+
+        if (! $asset) {
+            $asset = Asset::where('status', 'Available')->orderBy('id')->first();
+        }
+
+        if ($asset) {
+            $this->applyAssetDefaults($asset);
+        }
+    }
+
+    public function updatedAssetId(string $value): void
+    {
+        $asset = Asset::find($value);
+        if ($asset) {
+            $this->applyAssetDefaults($asset);
+        }
+    }
+
+    private function applyAssetDefaults(Asset $asset): void
+    {
+        $this->assetId = $asset->id;
+        $this->location = in_array($asset->assigned_location, Location::OFFICE_OPTIONS, true)
+            ? $asset->assigned_location
+            : Location::OFFICE_OPTIONS[0];
+        $this->department = $asset->department ?: 'Finance';
+        $this->condition = $asset->condition ?: 'Good';
+        $this->accessories = $asset->accessories ?: '';
     }
 
     public function submit()
@@ -92,7 +123,10 @@ class AssignAsset extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('transactions.manage'), 403);
 
-        $availableAssets = Asset::whereIn('status', ['Available', 'Assigned'])->get();
+        $availableAssets = Asset::where('status', 'Available')
+            ->when($this->assetId !== '', fn ($q) => $q->orWhere('id', $this->assetId))
+            ->orderBy('id')
+            ->get();
         $employees = Employee::where('status', 'Active')->get();
         $departments = Department::all();
 

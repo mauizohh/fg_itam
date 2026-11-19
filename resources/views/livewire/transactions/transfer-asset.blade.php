@@ -12,9 +12,9 @@
         <form wire:submit.prevent="submit" class="space-y-5 text-xs">
             <div>
                 <label class="block font-bold text-gray-700 mb-1.5">Asset *</label>
-                <select wire:model="assetId" class="itam-select h-11" required>
+                <select wire:model.live="assetId" class="itam-select h-11" required>
                     @foreach($assets as $ast)
-                        <option value="{{ $ast->id }}">{{ $ast->id }} - {{ $ast->name }}</option>
+                        <option value="{{ $ast->id }}">{{ $ast->id }} - {{ $ast->name }} (Current: {{ $ast->display_assigned_user ?: ($ast->assigned_user ?: 'Assigned') }})</option>
                     @endforeach
                 </select>
             </div>

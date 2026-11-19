@@ -12,7 +12,7 @@
         <form wire:submit.prevent="submit" class="space-y-5 text-xs">
             <div>
                 <label class="block font-bold text-gray-700 mb-1.5">Asset *</label>
-                <select wire:model="assetId" class="itam-select h-11" required>
+                <select wire:model.live="assetId" class="itam-select h-11" required>
                     @foreach($availableAssets as $ast)
                         <option value="{{ $ast->id }}">{{ $ast->id }} - {{ $ast->name }} ({{ $ast->serial_number }}) - [{{ $ast->status }}]</option>
                     @endforeach
