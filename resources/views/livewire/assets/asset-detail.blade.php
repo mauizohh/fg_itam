@@ -7,9 +7,12 @@
         </div>
         <div class="flex items-center gap-2">
             @if (auth()->user()?->hasPermission('transactions.manage'))
-                @if ($asset->status === 'Assigned' || ! empty($asset->assigned_user))
+                @if ($asset->status === 'Assigned' || $asset->status === 'Loan' || ! empty($asset->assigned_user))
                     <a href="{{ route('transactions.transfer') }}?asset_id={{ $asset->id }}" class="btn-primary">
                         Transfer Asset
+                    </a>
+                    <a href="{{ route('transactions.return') }}?asset_id={{ $asset->id }}" class="btn-primary">
+                        Return Asset
                     </a>
                 @elseif ($asset->status === 'Available')
                     <a href="{{ route('transactions.assign') }}?asset_id={{ $asset->id }}" class="btn-primary">

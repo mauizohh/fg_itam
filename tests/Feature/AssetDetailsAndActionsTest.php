@@ -9,6 +9,7 @@ use App\Livewire\Assets\AvailableAssets;
 use App\Livewire\Dashboard;
 use App\Livewire\Maintenance\Warranty;
 use App\Livewire\People\Departments as DepartmentsComponent;
+use App\Livewire\People\EmployeeDetail as EmployeeDetailComponent;
 use App\Livewire\People\Employees as EmployeesComponent;
 use App\Livewire\Transactions\AssignAsset;
 use App\Livewire\Transactions\LoanAsset;
@@ -856,5 +857,149 @@ class AssetDetailsAndActionsTest extends TestCase
 
         $fresh = $asset->fresh();
         $this->assertNull($fresh->expected_return_date);
+    }
+
+    public function test_employee_directory_uses_20_per_page_pagination_and_aligns_with_employee_detail(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+        Employee::ensureSynced();
+
+        // 1. Employees directory paginates 20 per page
+        $test = Livewire::actingAs($admin)->test(EmployeesComponent::class);
+        $paginator = $test->viewData('employees');
+        $this->assertEquals(20, $paginator->perPage());
+
+        // 2. An employee without assets shows 0 in directory and 0 in detail without mock rows
+        $employeeWithoutAssets = Employee::firstOrCreate(
+            ['name' => 'TEST UNASSIGNED EMPLOYEE'],
+            [
+                'email' => 'unassigned@example.com',
+                'department' => 'Information Technology',
+                'location' => 'Jitra Office',
+                'status' => 'Active',
+            ]
+        );
+
+        $detailTest = Livewire::actingAs($admin)
+            ->test(EmployeeDetailComponent::class, ['id' => $employeeWithoutAssets->id]);
+
+        $detailTest
+            ->assertSeeHtml('No equipment currently assigned to this employee.')
+            ->assertDontSeeHtml('IT-LAP-2026-00123')
+            ->assertDontSeeHtml('Dell Latitude 7450')
+            ->assertDontSeeHtml('IT-MON-2026-00391');
+
+        $this->assertEquals(0, $employeeWithoutAssets->assigned_assets_count);
+        $this->assertEquals(0, $employeeWithoutAssets->pending_returns_count);
+    }
+
+    public function test_asset_detail_renders_return_asset_button_beside_transfer_button(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+        $asset = Asset::where('status', 'Assigned')->firstOrFail();
+
+        Livewire::actingAs($admin)
+            ->test(AssetDetail::class, ['id' => $asset->id])
+            ->assertSeeHtml('Transfer Asset')
+            ->assertSeeHtml('Return Asset')
+            ->assertSeeHtml(route('transactions.return').'?asset_id='.$asset->id);
+    }
+
+    public function test_return_asset_auto_fills_from_asset_id_query_parameter(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+        $asset = Asset::where('status', 'Assigned')->whereNotNull('assigned_user')->firstOrFail();
+
+        $this->actingAs($admin)->get(route('transactions.return', ['asset_id' => $asset->id]))
+            ->assertOk();
+
+        $component = Livewire::actingAs($admin)->test(ReturnAsset::class, ['asset_id' => $asset->id]);
+
+        $this->assertEquals($asset->id, $component->get('assetId'));
+        $this->assertEquals($asset->display_assigned_user ?: $asset->assigned_user, $component->get('returnedBy'));
+    }
+
+    public function test_employee_detail_renders_return_all_button_and_batch_returns_all_assets(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+        Employee::ensureSynced();
+
+        // 1. Employee with 0 assets has disabled Return All button
+        $emptyEmp = Employee::firstOrCreate(
+            ['name' => 'ZERO ASSETS EMPLOYEE'],
+            ['department' => 'Information Technology', 'location' => 'Jitra Office', 'status' => 'Active']
+        );
+        Livewire::actingAs($admin)
+            ->test(EmployeeDetailComponent::class, ['id' => $emptyEmp->id])
+            ->assertSeeHtml('disabled')
+            ->assertSeeHtml('Return All');
+
+        // 2. Employee with assets has active Return All link
+        $emp = Employee::firstOrCreate(
+            ['name' => 'BATCH RETURN TEST EMPLOYEE'],
+            ['department' => 'Information Technology', 'location' => 'Jitra Office', 'status' => 'Active']
+        );
+
+        $asset1 = Asset::create([
+            'id' => 'IT-LAP-2026-99901',
+            'name' => 'Test Laptop 1',
+            'category_id' => 'LAP',
+            'category_name' => 'Laptops',
+            'brand' => 'Dell',
+            'model' => 'Latitude',
+            'serial_number' => 'SN-TEST-001',
+            'status' => 'Assigned',
+            'assigned_user' => $emp->name,
+            'department' => $emp->department,
+            'assigned_location' => 'Jitra Office',
+        ]);
+
+        $asset2 = Asset::create([
+            'id' => 'IT-MON-2026-99902',
+            'name' => 'Test Monitor 2',
+            'category_id' => 'MON',
+            'category_name' => 'Monitors',
+            'brand' => 'Dell',
+            'model' => 'UltraSharp',
+            'serial_number' => 'SN-TEST-002',
+            'status' => 'Assigned',
+            'assigned_user' => $emp->name,
+            'department' => $emp->department,
+            'assigned_location' => 'Jitra Office',
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(EmployeeDetailComponent::class, ['id' => $emp->id])
+            ->assertDontSeeHtml('disabled class="btn-secondary opacity-50 cursor-not-allowed"')
+            ->assertSeeHtml('Return All')
+            ->assertSeeHtml(route('transactions.return').'?employee='.urlencode($emp->name).'&mode=all');
+
+        // 3. Testing ReturnAsset in Return All mode
+        $returnTest = Livewire::actingAs($admin)->test(ReturnAsset::class, ['employee' => $emp->name, 'mode' => 'all']);
+
+        $this->assertEquals('all', $returnTest->get('returnMode'));
+        $this->assertEquals($emp->name, $returnTest->get('returnedBy'));
+        $this->assertContains($asset1->id, $returnTest->get('selectedAssetIds'));
+        $this->assertContains($asset2->id, $returnTest->get('selectedAssetIds'));
+
+        // Complete return for all
+        $returnTest
+            ->set('returnLocation', 'Jitra Office')
+            ->set('condition', 'Good')
+            ->call('completeReturn')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('assets.available'));
+
+        // Verify both assets are now Available and unassigned
+        $this->assertEquals('Available', $asset1->fresh()->status);
+        $this->assertNull($asset1->fresh()->assigned_user);
+        $this->assertEquals('Available', $asset2->fresh()->status);
+        $this->assertNull($asset2->fresh()->assigned_user);
+
+        // Clean up created test assets
+        $asset1->delete();
+        $asset2->delete();
+        $emp->delete();
+        $emptyEmp->delete();
     }
 }

@@ -19,6 +19,53 @@ class Employee extends Model
         AdmidioDirectoryService::ensureSynced();
     }
 
+    /**
+     * Refresh employee asset and pending return counts from actual assets table.
+     */
+    public static function syncAssetCounts(): void
+    {
+        app(AdmidioDirectoryService::class)->syncEmployeeAssetCounts();
+    }
+
+    /**
+     * Real-time assigned assets count matching EmployeeDetail logic.
+     */
+    public function getAssignedAssetsCountAttribute($value): int
+    {
+        if (isset($this->attributes['assigned_assets_count_computed'])) {
+            return (int) $this->attributes['assigned_assets_count_computed'];
+        }
+
+        return Asset::query()
+            ->where(function ($query): void {
+                $query->where('assigned_user', $this->name)
+                    ->orWhere('assigned_user', 'like', "%{$this->name}%");
+            })
+            ->whereIn('status', ['Assigned', 'Loan'])
+            ->count();
+    }
+
+    /**
+     * Real-time pending returns count matching EmployeeDetail logic.
+     */
+    public function getPendingReturnsCountAttribute($value): int
+    {
+        if (isset($this->attributes['pending_returns_count_computed'])) {
+            return (int) $this->attributes['pending_returns_count_computed'];
+        }
+
+        return Asset::query()
+            ->where(function ($query): void {
+                $query->where('assigned_user', $this->name)
+                    ->orWhere('assigned_user', 'like', "%{$this->name}%");
+            })
+            ->where(function ($query): void {
+                $query->where('status', 'Loan')
+                    ->orWhereNotNull('expected_return_date');
+            })
+            ->count();
+    }
+
     public function getInitialsAttribute(): string
     {
         $parts = explode(' ', trim($this->name));

@@ -7,9 +7,33 @@
 
     <!-- Return Details Card matching UI 10 -->
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
-        <h3 class="font-heading font-bold text-base text-[#3b4048] pb-2 border-b">Return Details</h3>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b">
+            <div>
+                <h3 class="font-heading font-bold text-base text-[#3b4048]">Return Details</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5">
+                    @if($returnMode === 'all')
+                        Return all or selected assets in custody of this employee at once.
+                    @else
+                        Check an individual asset back into available inventory.
+                    @endif
+                </p>
+            </div>
+            <div class="inline-flex items-center gap-1 bg-gray-100 p-1 rounded-lg self-start sm:self-auto">
+                <button type="button"
+                    wire:click="setReturnMode('single')"
+                    class="px-3 py-1 rounded-md text-xs font-semibold transition {{ $returnMode === 'single' ? 'bg-white text-[#a92d31] shadow-xs' : 'text-gray-600 hover:text-gray-900' }}">
+                    Single Asset
+                </button>
+                <button type="button"
+                    wire:click="setReturnMode('all')"
+                    class="px-3 py-1 rounded-md text-xs font-semibold transition {{ $returnMode === 'all' ? 'bg-white text-[#a92d31] shadow-xs' : 'text-gray-600 hover:text-gray-900' }}">
+                    Return All (Custodian)
+                </button>
+            </div>
+        </div>
 
         <form wire:submit.prevent="completeReturn" class="space-y-5 text-xs">
+            @if ($returnMode === 'single')
             @php
                 $assetOptions = $assignedAssets->map(fn($a) => [
                     'id' => $a->id,
@@ -161,6 +185,7 @@
                 <input type="hidden" name="assetId" :value="selectedId">
                 @error('assetId') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
             </div>
+            @endif
 
             <!-- Returned By Component (Single Full-Width Searchable Selection) -->
             <div class="space-y-1.5">
@@ -292,6 +317,91 @@
                 @error('returnedBy') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
             </div>
 
+            @if ($returnMode === 'all')
+                <!-- Assigned Equipment to Return for Custodian -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block font-bold text-gray-700">
+                                Assigned Equipment in Custody *
+                            </label>
+                            <span class="text-[11px] text-gray-500">
+                                Select all or specific equipment to check back into inventory.
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[11px] font-semibold text-gray-600">
+                                <strong class="text-[#a92d31]">{{ count($selectedAssetIds) }}</strong> of {{ $returneeAssets->count() }} selected
+                            </span>
+                            @if ($returneeAssets->isNotEmpty())
+                                <button type="button" wire:click="toggleSelectAll" class="text-xs font-bold text-[#a92d31] hover:underline cursor-pointer">
+                                    {{ count($selectedAssetIds) === $returneeAssets->count() ? 'Deselect All' : 'Select All' }}
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                        <table class="w-full text-left itam-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-12 text-center">
+                                        <input type="checkbox"
+                                            wire:click="toggleSelectAll"
+                                            {{ $returneeAssets->isNotEmpty() && count($selectedAssetIds) === $returneeAssets->count() ? 'checked' : '' }}
+                                            class="rounded border-gray-300 text-[#a92d31] focus:ring-[#a92d31] cursor-pointer">
+                                    </th>
+                                    <th>Asset ID</th>
+                                    <th>Asset</th>
+                                    <th>Serial No.</th>
+                                    <th class="text-center w-28">Condition</th>
+                                    <th class="w-24">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($returneeAssets as $ast)
+                                <tr class="hover:bg-gray-50 transition cursor-pointer" wire:key="ast-{{ $ast->id }}">
+                                    <td class="text-center" @click.stop>
+                                        <input type="checkbox"
+                                            value="{{ $ast->id }}"
+                                            wire:model.live="selectedAssetIds"
+                                            class="rounded border-gray-300 text-[#a92d31] focus:ring-[#a92d31] cursor-pointer">
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('assets.detail', $ast->id) }}" target="_blank" class="asset-id-link">
+                                            {{ $ast->id }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="table-primary-text">{{ $ast->name }}</div>
+                                        <div class="table-subtext">{{ $ast->category_name }} &bull; {{ $ast->brand }}</div>
+                                    </td>
+                                    <td class="table-mono">{{ $ast->serial_number ?: '—' }}</td>
+                                    <td class="text-center">
+                                        <div class="flex items-center justify-center">
+                                            <span class="px-2.5 py-0.5 rounded text-xs font-semibold {{ $ast->condition === 'New' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
+                                                {{ $ast->condition ?: 'Good' }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="{{ $ast->status_pill_class }}">{{ $ast->status }}</span>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 text-gray-400">
+                                        No active assigned equipment found for {{ $returnedBy ?: 'this custodian' }}.
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                    @error('selectedAssetIds') <span class="text-red-500 text-xs block">{{ $message }}</span> @enderror
+                </div>
+            @endif
+
             <!-- Return Date, Return Location, & Condition in the same row (3 columns) -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
@@ -357,7 +467,13 @@
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t">
                 <a href="{{ route('assets.index') }}" class="btn-secondary">Save Draft</a>
-                <button type="submit" class="btn-primary">Complete Return</button>
+                <button type="submit" class="btn-primary {{ $returnMode === 'all' && count($selectedAssetIds) === 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $returnMode === 'all' && count($selectedAssetIds) === 0 ? 'disabled' : '' }}>
+                    @if($returnMode === 'all')
+                        Complete Return All ({{ count($selectedAssetIds) }} {{ \Illuminate\Support\Str::plural('Asset', count($selectedAssetIds)) }})
+                    @else
+                        Complete Return
+                    @endif
+                </button>
             </div>
         </form>
     </div>

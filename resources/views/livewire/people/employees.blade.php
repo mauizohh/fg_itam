@@ -51,12 +51,12 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($employees as $emp)
+                @forelse($employees as $emp)
                 <tr>
-                    <td class="font-bold text-gray-900">{{ $emp->name }}</td>
+                    <td class="table-primary-text">{{ $emp->name }}</td>
                     <td>{{ $emp->department }}</td>
                     <td>{{ $emp->location }}</td>
-                    <td class="font-bold font-heading text-gray-800">{{ $emp->assigned_assets_count }}</td>
+                    <td class="font-bold text-gray-800">{{ $emp->assigned_assets_count }}</td>
                     <td>
                         <span class="{{ $emp->pending_returns_count > 0 ? 'text-amber-600 font-bold' : 'text-gray-500' }}">
                             {{ $emp->pending_returns_count }}
@@ -68,14 +68,18 @@
                         </a>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-400">
+                        No employees found matching filter.
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
 
-        @if($employees->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100">
-                {{ $employees->links() }}
-            </div>
-        @endif
+        <x-slot:pagination>
+            {{ $employees->links() }}
+        </x-slot:pagination>
     </x-table-section>
 </div>

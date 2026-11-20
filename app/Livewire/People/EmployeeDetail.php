@@ -44,11 +44,20 @@ class EmployeeDetail extends Component
                 $query->where('assigned_user', $employee->name)
                     ->orWhere('assigned_user', 'like', "%{$employee->name}%");
             })
+            ->whereIn('status', ['Assigned', 'Loan'])
             ->get();
 
         $assetValue = $actor->canViewFinancialData()
             ? (float) $assignedAssets->sum('purchase_cost')
             : 0.0;
+
+        $pendingReturnsCount = $assignedAssets->filter(
+            fn (Asset $asset): bool => $asset->status === 'Loan' || ! empty($asset->expected_return_date)
+        )->count();
+
+        $exceptionsCount = $assignedAssets->filter(
+            fn (Asset $asset): bool => in_array($asset->status, ['Missing', 'Damaged', 'In Repair'], true)
+        )->count();
 
         $assetIds = $assignedAssets->pluck('id')->toArray();
         $recentActivities = AuditLog::query()
@@ -67,7 +76,7 @@ class EmployeeDetail extends Component
         $activityAssetIds = $recentActivities->pluck('object_id')->unique()->filter()->values();
         $activityAssets = Asset::whereIn('id', $activityAssetIds)->get()->keyBy('id');
 
-        return view('livewire.people.employee-detail', compact('employee', 'assignedAssets', 'assetValue', 'recentActivities', 'activityAssets'))
+        return view('livewire.people.employee-detail', compact('employee', 'assignedAssets', 'assetValue', 'pendingReturnsCount', 'exceptionsCount', 'recentActivities', 'activityAssets'))
             ->layout('layouts.app', ['title' => 'Employee Detail - '.$employee->name, 'breadcrumb' => 'IT Asset Management / People / '.$employee->name]);
     }
 }

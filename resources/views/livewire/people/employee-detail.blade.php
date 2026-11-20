@@ -25,7 +25,7 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-[18px]">
         <x-stat-card
             title="Assigned Assets"
-            :value="count($assignedAssets) ?: 3"
+            :value="count($assignedAssets)"
             subtitle="Current custody"
         />
         @if (auth()->user()?->canViewFinancialData())
@@ -37,22 +37,28 @@
         @endif
         <x-stat-card
             title="Pending Returns"
-            :value="$employee->pending_returns_count"
-            subtitle="No outstanding items"
+            :value="$pendingReturnsCount"
+            :subtitle="$pendingReturnsCount > 0 ? $pendingReturnsCount . ' return(s) due' : 'No outstanding items'"
         />
         <x-stat-card
             title="Exceptions"
-            :value="$employee->exceptions_count"
-            subtitle="No audit issues"
+            :value="$exceptionsCount"
+            :subtitle="$exceptionsCount > 0 ? $exceptionsCount . ' issue(s) flagged' : 'No audit issues'"
         />
     </div>
 
     <!-- Assigned Equipment Table -->
     <x-table-section title="Assigned Equipment">
         <x-slot:actions>
-            <a href="{{ route('transactions.return') }}?employee={{ urlencode($employee->name) }}" class="btn-primary">
-                Start Return
-            </a>
+            @if (count($assignedAssets) > 0)
+                <a href="{{ route('transactions.return') }}?employee={{ urlencode($employee->name) }}&mode=all" class="btn-primary">
+                    Return All
+                </a>
+            @else
+                <button type="button" disabled class="btn-secondary opacity-50 cursor-not-allowed" title="No equipment currently in custody">
+                    Return All
+                </button>
+            @endif
         </x-slot:actions>
 
         <table class="w-full text-left itam-table">
@@ -69,54 +75,29 @@
                 @forelse($assignedAssets as $item)
                 <tr>
                     <td>
-                        <a href="{{ route('assets.detail', $item->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
+                        <a href="{{ route('assets.detail', $item->id) }}" class="asset-id-link">
                             {{ $item->id }}
                         </a>
                     </td>
-                    <td class="font-bold text-gray-800">{{ $item->name }}</td>
-                    <td class="text-xs text-gray-600">{{ $item->assigned_date ? \Carbon\Carbon::parse($item->assigned_date)->format('d M Y') : '10 Aug 2026' }}</td>
+                    <td>
+                        <div class="table-primary-text">{{ $item->name }}</div>
+                        <div class="table-subtext">{{ $item->serial_number }}</div>
+                    </td>
+                    <td class="table-date">{{ $item->assigned_date ? \Carbon\Carbon::parse($item->assigned_date)->format('d M Y') : '10 Aug 2026' }}</td>
                     <td class="text-center">
-                        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">
+                        <span class="px-2.5 py-0.5 rounded text-xs font-semibold {{ $item->condition === 'New' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
                             {{ $item->condition ?: 'Good' }}
                         </span>
                     </td>
                     <td>
-                        <span class="pill normal">Assigned</span>
+                        <span class="{{ $item->status_pill_class }}">{{ $item->status }}</span>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td>
-                        <a href="{{ route('assets.detail', 'IT-LAP-2026-00123') }}" class="font-bold text-[#a92d31] hover:underline font-heading">
-                            IT-LAP-2026-00123
-                        </a>
+                    <td colspan="5" class="text-center py-8 text-gray-400">
+                        No equipment currently assigned to this employee.
                     </td>
-                    <td class="font-bold text-gray-800">Dell Latitude 7450</td>
-                    <td class="text-xs text-gray-600">10 Aug 2026</td>
-                    <td><span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">Good</span></td>
-                    <td><span class="pill normal">Assigned</span></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="{{ route('assets.detail', 'IT-MON-2026-00391') }}" class="font-bold text-[#a92d31] hover:underline font-heading">
-                            IT-MON-2026-00391
-                        </a>
-                    </td>
-                    <td class="font-bold text-gray-800">Dell 27 Monitor</td>
-                    <td class="text-xs text-gray-600">10 Aug 2026</td>
-                    <td><span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">Good</span></td>
-                    <td><span class="pill normal">Assigned</span></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="{{ route('assets.detail', 'IT-ACC-2026-00678') }}" class="font-bold text-[#a92d31] hover:underline font-heading">
-                            IT-ACC-2026-00678
-                        </a>
-                    </td>
-                    <td class="font-bold text-gray-800">USB-C Dock</td>
-                    <td class="text-xs text-gray-600">10 Aug 2026</td>
-                    <td><span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">Good</span></td>
-                    <td><span class="pill normal">Assigned</span></td>
                 </tr>
                 @endforelse
             </tbody>

@@ -217,15 +217,12 @@ class AdmidioDirectoryService
             return 0;
         }
 
-        // Get asset counts by custodian
-        $assetCounts = Asset::query()
+        // Get active assets by custodian
+        $activeAssets = Asset::query()
             ->whereNotNull('assigned_user')
             ->where('assigned_user', '!=', '')
             ->whereIn('status', ['Assigned', 'Loan'])
-            ->select('assigned_user', DB::raw('COUNT(*) as total'), DB::raw('SUM(purchase_cost) as total_val'))
-            ->groupBy('assigned_user')
-            ->get()
-            ->keyBy(fn ($row): string => strtolower(trim((string) $row->assigned_user)));
+            ->get(['id', 'assigned_user', 'status', 'expected_return_date', 'purchase_cost']);
 
         $now = now();
         $records = [];
@@ -252,10 +249,18 @@ class AdmidioDirectoryService
             $email = $u->usr_email ?: ($u->data_email ?: null);
             $dept = $userDepartments[$usrId] ?? 'General';
 
-            $lookupKey = strtolower(trim($displayName));
-            $assetStat = $assetCounts->get($lookupKey);
-            $assignedCount = $assetStat ? (int) $assetStat->total : 0;
-            $assetValue = $assetStat ? (float) $assetStat->total_val : 0.00;
+            $empLower = strtolower(trim($displayName));
+            $matched = $activeAssets->filter(function (Asset $a) use ($empLower): bool {
+                $u = strtolower(trim((string) $a->assigned_user));
+
+                return $u === $empLower || str_contains($u, $empLower) || str_contains($empLower, $u);
+            });
+
+            $assignedCount = $matched->count();
+            $pendingCount = $matched->filter(
+                fn (Asset $a): bool => $a->status === 'Loan' || ! empty($a->expected_return_date)
+            )->count();
+            $assetValue = (float) $matched->sum('purchase_cost');
 
             $records[] = [
                 'id' => $usrId,
@@ -265,7 +270,7 @@ class AdmidioDirectoryService
                 'department' => $dept,
                 'location' => 'Jitra Office',
                 'assigned_assets_count' => $assignedCount,
-                'pending_returns_count' => 0,
+                'pending_returns_count' => $pendingCount,
                 'exceptions_count' => 0,
                 'asset_value' => $assetValue,
                 'status' => 'Active',
@@ -286,11 +291,53 @@ class AdmidioDirectoryService
             DB::table('fg_itam_employees')->upsert(
                 $chunk,
                 ['id'],
-                ['name', 'email', 'department', 'assigned_assets_count', 'asset_value', 'status', 'updated_at']
+                ['name', 'email', 'department', 'assigned_assets_count', 'pending_returns_count', 'asset_value', 'status', 'updated_at']
             );
         }
 
         return count($records);
+    }
+
+    /**
+     * Refresh assigned assets and pending returns counts for all employees.
+     */
+    public function syncEmployeeAssetCounts(): void
+    {
+        if (! Schema::hasTable('fg_itam_employees') || ! Schema::hasTable('fg_itam_assets')) {
+            return;
+        }
+
+        $activeAssets = Asset::query()
+            ->whereNotNull('assigned_user')
+            ->where('assigned_user', '!=', '')
+            ->whereIn('status', ['Assigned', 'Loan'])
+            ->get(['id', 'assigned_user', 'status', 'expected_return_date', 'purchase_cost']);
+
+        $employees = DB::table('fg_itam_employees')->select('id', 'name')->get();
+
+        foreach ($employees as $emp) {
+            $empLower = strtolower(trim((string) $emp->name));
+            $matched = $activeAssets->filter(function (Asset $a) use ($empLower): bool {
+                $u = strtolower(trim((string) $a->assigned_user));
+
+                return $u === $empLower || str_contains($u, $empLower) || str_contains($empLower, $u);
+            });
+
+            $assignedCount = $matched->count();
+            $pendingCount = $matched->filter(
+                fn (Asset $a): bool => $a->status === 'Loan' || ! empty($a->expected_return_date)
+            )->count();
+            $val = (float) $matched->sum('purchase_cost');
+
+            DB::table('fg_itam_employees')
+                ->where('id', $emp->id)
+                ->update([
+                    'assigned_assets_count' => $assignedCount,
+                    'pending_returns_count' => $pendingCount,
+                    'asset_value' => $val,
+                    'updated_at' => now(),
+                ]);
+        }
     }
 
     /**
