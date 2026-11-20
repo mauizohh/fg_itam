@@ -663,7 +663,11 @@ class AssetDetailsAndActionsTest extends TestCase
             ->test(AssignedAssets::class)
             ->assertSeeHtml('kebab-btn')
             ->assertSeeHtml('w-28">Condition</th>')
-            ->assertSeeHtml('w-24">Action</th>');
+            ->assertSeeHtml('w-24">Action</th>')
+            ->assertDontSeeHtml('<th>Department</th>')
+            ->assertDontSeeHtml('<th>Assigned Date</th>')
+            ->assertDontSeeHtml('<th>Status</th>')
+            ->assertSeeHtml('class="table-subtext"');
     }
 
     public function test_available_assets_renders_centered_condition_and_action(): void

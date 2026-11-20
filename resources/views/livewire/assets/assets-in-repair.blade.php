@@ -63,18 +63,21 @@
                 @foreach($repairs as $rpr)
                 <tr>
                     <td>
-                        <a href="{{ route('assets.detail', $rpr->asset_id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
+                        <a href="{{ route('assets.detail', $rpr->asset_id) }}" class="asset-id-link">
                             {{ $rpr->asset_id }}
                         </a>
                     </td>
-                    <td class="font-bold text-gray-800">
+                    <td>
                         @php $asset = \App\Models\Asset::find($rpr->asset_id); @endphp
-                        {{ $asset ? $asset->name : 'IT Equipment' }}
+                        <div class="table-primary-text">{{ $asset ? $asset->name : 'IT Equipment' }}</div>
+                        @if($asset && $asset->serial_number)
+                            <div class="table-subtext">{{ $asset->serial_number }}</div>
+                        @endif
                     </td>
                     <td>{{ $rpr->issue }}</td>
-                    <td class="font-semibold text-gray-700">{{ $rpr->vendor }}</td>
-                    <td class="text-xs text-gray-600">{{ \Carbon\Carbon::parse($rpr->opened_date)->format('d M') }}</td>
-                    <td class="text-xs font-semibold {{ $rpr->status === 'Overdue' ? 'text-red-600' : 'text-gray-600' }}">
+                    <td>{{ $rpr->vendor }}</td>
+                    <td class="table-date">{{ \Carbon\Carbon::parse($rpr->opened_date)->format('d M') }}</td>
+                    <td class="table-date {{ $rpr->status === 'Overdue' ? 'text-red-600 font-semibold' : '' }}">
                         {{ $rpr->target_return_date ? \Carbon\Carbon::parse($rpr->target_return_date)->format('d M') : '-' }}
                     </td>
                     <td class="text-center">

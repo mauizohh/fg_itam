@@ -62,12 +62,17 @@
                 @forelse($retired as $asset)
                 <tr>
                     <td>
-                        <a href="{{ route('assets.detail', $asset->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
+                        <a href="{{ route('assets.detail', $asset->id) }}" class="asset-id-link">
                             {{ $asset->id }}
                         </a>
                     </td>
-                    <td class="font-bold text-gray-800">{{ $asset->name }}</td>
-                    <td class="text-xs text-gray-600">{{ $asset->retired_date ? \Carbon\Carbon::parse($asset->retired_date)->format('d M Y') : '31 Jul 2026' }}</td>
+                    <td>
+                        <div class="table-primary-text">{{ $asset->name }}</div>
+                        @if($asset->serial_number)
+                            <div class="table-subtext">{{ $asset->serial_number }}</div>
+                        @endif
+                    </td>
+                    <td class="table-date">{{ $asset->retired_date ? \Carbon\Carbon::parse($asset->retired_date)->format('d M Y') : '31 Jul 2026' }}</td>
                     <td>{{ $asset->retirement_reason ?: 'End of life' }}</td>
                     <td>
                         <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">

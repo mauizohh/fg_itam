@@ -53,10 +53,7 @@
                     <th>Asset ID</th>
                     <th>Asset</th>
                     <th>Assigned To</th>
-                    <th>Department</th>
-                    <th>Assigned Date</th>
                     <th class="text-center w-28">Condition</th>
-                    <th>Status</th>
                     <th class="text-center w-24">Action</th>
                 </tr>
             </thead>
@@ -64,26 +61,32 @@
                 @forelse($assignments as $item)
                 <tr>
                     <td>
-                        <a href="{{ route('assets.detail', $item->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
+                        <a href="{{ route('assets.detail', $item->id) }}" class="asset-id-link">
                             {{ $item->id }}
                         </a>
                     </td>
                     <td>
-                        <div class="font-bold text-gray-800">{{ $item->name }}</div>
-                        <div class="text-[11px] text-gray-400">{{ $item->serial_number }}</div>
+                        <div class="table-primary-text">{{ $item->name }}</div>
+                        <div class="table-subtext">{{ $item->serial_number }}</div>
                     </td>
-                    <td class="font-semibold text-gray-800">{{ $item->display_assigned_user }}</td>
-                    <td>{{ $item->department ?: 'General' }}</td>
-                    <td class="text-xs text-gray-600">{{ $item->assigned_date ? \Carbon\Carbon::parse($item->assigned_date)->format('d M Y') : '10 Aug 2026' }}</td>
+                    <td>
+                        <div class="table-primary-text">{{ $item->display_assigned_user }}</div>
+                        <div class="table-subtext">
+                            @if(! empty($item->assigned_user) && ! empty($item->department))
+                                {{ $item->department }}
+                            @elseif(empty($item->assigned_user) && ! empty($item->department))
+                                Department Custody
+                            @else
+                                {{ $item->department ?: 'General' }}
+                            @endif
+                        </div>
+                    </td>
                     <td class="text-center">
                         <div class="flex items-center justify-center">
                             <span class="px-2.5 py-0.5 rounded text-xs font-semibold {{ $item->condition === 'New' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700' }}">
                                 {{ $item->condition ?: 'Good' }}
                             </span>
                         </div>
-                    </td>
-                    <td>
-                        <span class="pill normal">Assigned</span>
                     </td>
                     <td class="text-center">
                         <div class="flex items-center justify-center">
@@ -102,7 +105,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center py-8 text-gray-400">
+                    <td colspan="5" class="text-center py-8 text-gray-400">
                         No assignments matching filter.
                     </td>
                 </tr>

@@ -76,15 +76,15 @@
                 @forelse($assets as $asset)
                 <tr>
                     <td>
-                        <a href="{{ route('assets.detail', $asset->id) }}" class="font-bold text-[#a92d31] hover:underline font-heading">
+                        <a href="{{ route('assets.detail', $asset->id) }}" class="asset-id-link">
                             {{ $asset->id }}
                         </a>
                     </td>
                     <td>
-                        <div class="font-bold text-gray-800">{{ $asset->name }}</div>
-                        <div class="text-[11px] text-gray-400 font-normal">{{ $asset->category_name }} &bull; {{ $asset->brand }}</div>
+                        <div class="table-primary-text">{{ $asset->name }}</div>
+                        <div class="table-subtext">{{ $asset->category_name }} &bull; {{ $asset->brand }}</div>
                     </td>
-                    <td class="font-mono text-xs text-gray-600">{{ $asset->serial_number }}</td>
+                    <td class="table-mono">{{ $asset->serial_number }}</td>
                     <td>{{ $asset->display_assigned_user ?: '-' }}</td>
                     <td>{{ $asset->assigned_location }}</td>
                     <td>

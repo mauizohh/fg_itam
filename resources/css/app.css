@@ -131,17 +131,53 @@ h1, h2, h3, h4, .font-heading {
 }
 
 /* Table styling */
+:root {
+    --itam-table-th-bg: #8f2428;
+    --itam-table-th-color: #ffffff;
+    --itam-table-th-font: 'Poppins', sans-serif;
+    --itam-table-th-size: 13px;
+    --itam-table-th-weight: 700;
+
+    --itam-table-td-font: 'Montserrat', sans-serif;
+    --itam-table-td-size: 13px;
+    --itam-table-td-weight: 500;
+    --itam-table-td-color: #3b4048;
+
+    --itam-table-link-color: #a92d31;
+    --itam-table-link-hover: #8f2428;
+    --itam-table-link-font: 'Poppins', sans-serif;
+    --itam-table-link-weight: 700;
+
+    --itam-table-primary-color: #1f2937;
+    --itam-table-primary-weight: 700;
+    --itam-table-primary-size: 13px;
+
+    --itam-table-subtext-color: #69717d;
+    --itam-table-subtext-size: 11px;
+    --itam-table-subtext-weight: 400;
+
+    --itam-table-date-color: #4b5563;
+    --itam-table-date-size: 12px;
+    --itam-table-date-weight: 500;
+
+    --itam-table-mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --itam-table-mono-color: #4b5563;
+    --itam-table-mono-size: 12px;
+}
+
 .itam-table {
     width: 100%;
     text-align: left;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .itam-table th {
-    background-color: #8f2428;
-    color: #ffffff;
-    font-family: 'Poppins', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
+    background-color: var(--itam-table-th-bg, #8f2428);
+    color: var(--itam-table-th-color, #ffffff);
+    font-family: var(--itam-table-th-font, 'Poppins', sans-serif);
+    font-size: var(--itam-table-th-size, 13px);
+    font-weight: var(--itam-table-th-weight, 700);
     padding: 12px 14px;
     letter-spacing: 0.3px;
     text-align: left;
@@ -157,10 +193,10 @@ h1, h2, h3, h4, .font-heading {
 
 .itam-table td {
     background-color: #ffffff;
-    color: #3b4048;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
+    color: var(--itam-table-td-color, #3b4048);
+    font-family: var(--itam-table-td-font, 'Montserrat', sans-serif);
+    font-size: var(--itam-table-td-size, 13px);
+    font-weight: var(--itam-table-td-weight, 500);
     padding: 12px 14px;
     border-bottom: 1px solid #eadada;
 }
@@ -176,6 +212,52 @@ h1, h2, h3, h4, .font-heading {
 .itam-table th.text-center,
 .itam-table td.text-center {
     text-align: center !important;
+}
+
+/* Standardized Asset & Table Element Typography */
+.itam-table .asset-id-link,
+.itam-table a.table-link {
+    font-family: var(--itam-table-link-font, 'Poppins', sans-serif);
+    font-weight: var(--itam-table-link-weight, 700);
+    color: var(--itam-table-link-color, #a92d31);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.itam-table .asset-id-link:hover,
+.itam-table a.table-link:hover {
+    color: var(--itam-table-link-hover, #8f2428);
+    text-decoration: underline;
+}
+
+.itam-table .table-primary-text {
+    font-family: var(--itam-table-td-font, 'Montserrat', sans-serif);
+    font-size: var(--itam-table-primary-size, 13px);
+    font-weight: var(--itam-table-primary-weight, 700);
+    color: var(--itam-table-primary-color, #1f2937);
+    line-height: 1.3;
+}
+
+.itam-table .table-subtext {
+    font-family: var(--itam-table-td-font, 'Montserrat', sans-serif);
+    font-size: var(--itam-table-subtext-size, 11px);
+    font-weight: var(--itam-table-subtext-weight, 400);
+    color: var(--itam-table-subtext-color, #69717d);
+    margin-top: 2px;
+    line-height: 1.25;
+}
+
+.itam-table .table-date {
+    font-family: var(--itam-table-td-font, 'Montserrat', sans-serif);
+    font-size: var(--itam-table-date-size, 12px);
+    color: var(--itam-table-date-color, #4b5563);
+    font-weight: var(--itam-table-date-weight, 500);
+}
+
+.itam-table .table-mono {
+    font-family: var(--itam-table-mono-font, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+    font-size: var(--itam-table-mono-size, 12px);
+    color: var(--itam-table-mono-color, #4b5563);
 }
 
 /* Form inputs */
