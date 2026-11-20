@@ -50,9 +50,31 @@ class AssignedAssets extends Component
             $query->where('assigned_location', 'like', "%{$this->locationFilter}%");
         }
 
+        Department::ensureSynced();
+        Employee::ensureSynced();
+
         $assignments = $query->orderByDesc('assigned_date')->paginate(15);
-        $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->get();
-        $employees = $actor->scopeDepartmentQuery(Employee::where('status', 'Active'), 'department')->get();
+        $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->orderBy('name')->get();
+
+        $assignedCustodians = Asset::query()
+            ->whereIn('status', ['Assigned', 'Loan'])
+            ->whereNotNull('assigned_user')
+            ->where('assigned_user', '!=', '')
+            ->distinct()
+            ->pluck('assigned_user')
+            ->all();
+
+        $employeeQuery = Employee::where('status', 'Active');
+        if (! empty($assignedCustodians)) {
+            $employeeQuery->where(function ($q) use ($assignedCustodians): void {
+                $q->whereIn('name', $assignedCustodians)
+                    ->orWhere('assigned_assets_count', '>', 0);
+            });
+        }
+        $employees = $actor->scopeDepartmentQuery($employeeQuery, 'department')->orderBy('name')->get();
+        if ($employees->isEmpty()) {
+            $employees = $actor->scopeDepartmentQuery(Employee::where('status', 'Active'), 'department')->orderBy('name')->get();
+        }
 
         return view('livewire.assets.assigned-assets', compact('assignments', 'departments', 'employees'))
             ->layout('layouts.app', ['title' => 'Assigned Assets', 'breadcrumb' => 'IT Asset Management / Assets / Assigned']);

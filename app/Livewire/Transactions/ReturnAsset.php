@@ -3,6 +3,7 @@
 namespace App\Livewire\Transactions;
 
 use App\Models\Asset;
+use App\Models\Employee;
 use App\Models\Location;
 use App\Models\Transaction;
 use App\Models\User;
@@ -38,6 +39,8 @@ class ReturnAsset extends Component
 
     public function mount(): void
     {
+        Employee::ensureSynced();
+
         $this->returnDate = now()->format('Y-m-d');
         $requestedId = (string) request()->query('asset_id', '');
         if ($requestedId !== '') {
@@ -148,8 +151,25 @@ class ReturnAsset extends Component
 
         $assignedAssets = $query->orderBy('id')->get();
         $selectedAsset = $this->assetId ? Asset::find($this->assetId) : null;
+        $employees = Employee::where('status', 'Active')->orderBy('name')->get();
 
-        return view('livewire.transactions.return-asset', compact('assignedAssets', 'selectedAsset'))
+        $employeeOptions = $employees->map(fn ($emp) => [
+            'id' => (string) $emp->id,
+            'name' => $emp->name,
+            'department' => $emp->department ?: '',
+            'email' => $emp->email ?: '',
+        ])->values();
+
+        if ($this->returnedBy !== '' && ! $employeeOptions->contains('name', $this->returnedBy)) {
+            $employeeOptions->prepend([
+                'id' => 'custom',
+                'name' => $this->returnedBy,
+                'department' => '',
+                'email' => '',
+            ]);
+        }
+
+        return view('livewire.transactions.return-asset', compact('assignedAssets', 'selectedAsset', 'employees', 'employeeOptions'))
             ->layout('layouts.app', ['title' => 'Return Asset', 'breadcrumb' => 'IT Asset Management / Transactions / Return Asset']);
     }
 }

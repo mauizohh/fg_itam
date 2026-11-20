@@ -9,6 +9,7 @@ use App\Models\Location;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\AuditLogService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -22,7 +23,7 @@ class AssignAsset extends Component
 
     public string $assignTo = '';
 
-    public string $department = 'Finance';
+    public string $department = '';
 
     public string $location = 'Jitra Office';
 
@@ -38,6 +39,9 @@ class AssignAsset extends Component
 
     public function mount(): void
     {
+        Department::ensureSynced();
+        Employee::ensureSynced();
+
         $this->assignedDate = now()->format('Y-m-d');
 
         $requestedId = (string) request()->query('asset_id', '');
@@ -63,15 +67,37 @@ class AssignAsset extends Component
         }
     }
 
+    public function updatedAssignTo(string $value): void
+    {
+        $trimmed = trim($value);
+        if ($trimmed !== '') {
+            $emp = Employee::where('name', $trimmed)->first();
+            if ($emp && $emp->department) {
+                $this->department = $emp->department;
+            }
+        }
+    }
+
+    public function updatedDepartment(string $value): void
+    {
+        if ($this->assignTo !== '' && $value !== '') {
+            $emp = Employee::where('name', trim($this->assignTo))->first();
+            if ($emp && $emp->department && strcasecmp($emp->department, $value) !== 0) {
+                $this->assignTo = '';
+            }
+        }
+    }
+
     private function applyAssetDefaults(Asset $asset): void
     {
         $this->assetId = $asset->id;
         $this->location = in_array($asset->assigned_location, Location::OFFICE_OPTIONS, true)
             ? $asset->assigned_location
             : Location::OFFICE_OPTIONS[0];
-        $this->department = $asset->department ?: 'Finance';
+        $this->department = $asset->department ?: '';
         $this->condition = $asset->condition ?: 'Good';
         $this->accessories = $asset->accessories ?: '';
+        $this->expectedReturn = $asset->expected_return_date ? Carbon::parse($asset->expected_return_date)->format('Y-m-d') : 'Not required';
     }
 
     public function submit()
@@ -85,12 +111,16 @@ class AssignAsset extends Component
             'department' => 'required|string|max:100',
             'assignTo' => 'nullable|string|max:150',
             'location' => ['required', 'string', 'in:'.implode(',', Location::OFFICE_OPTIONS)],
+            'expectedReturn' => 'nullable|string|max:50',
         ]);
 
         $asset = Asset::find($this->assetId);
         if ($asset) {
             $oldUser = $asset->assigned_user;
             $assignedUser = trim($this->assignTo) !== '' ? trim($this->assignTo) : null;
+            $expectedReturnDate = ($this->expectedReturn && $this->expectedReturn !== 'Not required')
+                ? $this->expectedReturn
+                : null;
 
             $asset->update([
                 'status' => 'Assigned',
@@ -98,6 +128,7 @@ class AssignAsset extends Component
                 'department' => $this->department,
                 'assigned_location' => $this->location,
                 'assigned_date' => $this->assignedDate,
+                'expected_return_date' => $expectedReturnDate,
                 'condition' => $this->condition,
                 'accessories' => $this->accessories,
                 'remarks' => $this->remarks,
@@ -110,6 +141,7 @@ class AssignAsset extends Component
                 'to_department' => $this->department,
                 'to_location' => $this->location,
                 'transaction_date' => $this->assignedDate,
+                'due_date' => $expectedReturnDate,
                 'condition_at_time' => $this->condition,
                 'accessories' => $this->accessories,
                 'remarks' => $this->remarks,
@@ -155,10 +187,28 @@ class AssignAsset extends Component
         $availableAssets = $query->orderBy('id')->get();
 
         $selectedAsset = $this->assetId ? Asset::find($this->assetId) : null;
-        $employees = Employee::where('status', 'Active')->get();
-        $departments = Department::all();
+        $employees = Employee::where('status', 'Active')
+            ->orderBy('name')
+            ->get();
+        $departments = Department::orderBy('name')->get();
 
-        return view('livewire.transactions.assign-asset', compact('availableAssets', 'selectedAsset', 'employees', 'departments'))
+        $employeeOptions = $employees->map(fn ($emp) => [
+            'id' => (string) $emp->id,
+            'name' => $emp->name,
+            'department' => $emp->department ?: '',
+            'email' => $emp->email ?: '',
+        ])->values();
+
+        if ($this->assignTo !== '' && ! $employeeOptions->contains('name', $this->assignTo)) {
+            $employeeOptions->prepend([
+                'id' => 'custom',
+                'name' => $this->assignTo,
+                'department' => $this->department ?: '',
+                'email' => '',
+            ]);
+        }
+
+        return view('livewire.transactions.assign-asset', compact('availableAssets', 'selectedAsset', 'employees', 'departments', 'employeeOptions'))
             ->layout('layouts.app', ['title' => 'Assign Asset', 'breadcrumb' => 'IT Asset Management / Transactions / Assign Asset']);
     }
 }

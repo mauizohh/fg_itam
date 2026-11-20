@@ -24,7 +24,7 @@ class TransferAsset extends Component
 
     public string $transferTo = '';
 
-    public string $newDepartment = 'Finance';
+    public string $newDepartment = '';
 
     public string $newLocation = 'Kulim Office';
 
@@ -34,6 +34,9 @@ class TransferAsset extends Component
 
     public function mount(): void
     {
+        Department::ensureSynced();
+        Employee::ensureSynced();
+
         $this->effectiveDate = now()->format('Y-m-d');
 
         $requestedId = (string) request()->query('asset_id', '');
@@ -59,6 +62,27 @@ class TransferAsset extends Component
         }
     }
 
+    public function updatedTransferTo(string $value): void
+    {
+        $trimmed = trim($value);
+        if ($trimmed !== '') {
+            $emp = Employee::where('name', $trimmed)->first();
+            if ($emp && $emp->department) {
+                $this->newDepartment = $emp->department;
+            }
+        }
+    }
+
+    public function updatedNewDepartment(string $value): void
+    {
+        if ($this->transferTo !== '' && $value !== '') {
+            $emp = Employee::where('name', trim($this->transferTo))->first();
+            if ($emp && $emp->department && strcasecmp($emp->department, $value) !== 0) {
+                $this->transferTo = '';
+            }
+        }
+    }
+
     private function applyAssetDefaults(Asset $asset): void
     {
         $this->assetId = $asset->id;
@@ -66,7 +90,7 @@ class TransferAsset extends Component
         $this->currentLocation = in_array($asset->assigned_location, Location::OFFICE_OPTIONS, true)
             ? $asset->assigned_location
             : Location::OFFICE_OPTIONS[0];
-        $this->newDepartment = $asset->department ?: 'Finance';
+        $this->newDepartment = $asset->department ?: '';
         $this->newLocation = $this->currentLocation === Location::OFFICE_OPTIONS[0]
             ? Location::OFFICE_OPTIONS[1]
             : Location::OFFICE_OPTIONS[0];
@@ -141,10 +165,28 @@ class TransferAsset extends Component
         $assets = $query->orderBy('id')->get();
 
         $selectedAsset = $this->assetId ? Asset::find($this->assetId) : null;
-        $employees = Employee::where('status', 'Active')->get();
-        $departments = Department::all();
+        $employees = Employee::where('status', 'Active')
+            ->orderBy('name')
+            ->get();
+        $departments = Department::orderBy('name')->get();
 
-        return view('livewire.transactions.transfer-asset', compact('assets', 'selectedAsset', 'employees', 'departments'))
+        $employeeOptions = $employees->map(fn ($emp) => [
+            'id' => (string) $emp->id,
+            'name' => $emp->name,
+            'department' => $emp->department ?: '',
+            'email' => $emp->email ?: '',
+        ])->values();
+
+        if ($this->transferTo !== '' && ! $employeeOptions->contains('name', $this->transferTo)) {
+            $employeeOptions->prepend([
+                'id' => 'custom',
+                'name' => $this->transferTo,
+                'department' => $this->newDepartment ?: '',
+                'email' => '',
+            ]);
+        }
+
+        return view('livewire.transactions.transfer-asset', compact('assets', 'selectedAsset', 'employees', 'departments', 'employeeOptions'))
             ->layout('layouts.app', ['title' => 'Transfer Asset', 'breadcrumb' => 'IT Asset Management / Transactions / Transfer Asset']);
     }
 }

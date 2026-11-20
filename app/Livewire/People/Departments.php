@@ -15,9 +15,12 @@ class Departments extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('people.view'), 403);
 
-        $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->get();
+        Department::ensureSynced();
 
-        return view('livewire.people.departments', compact('departments'))
+        $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->orderBy('name')->get();
+        $topDepartments = $departments->sortByDesc('active_assets_count')->take(4);
+
+        return view('livewire.people.departments', compact('departments', 'topDepartments'))
             ->layout('layouts.app', ['title' => 'Departments', 'breadcrumb' => 'IT Asset Management / People / Departments']);
     }
 }

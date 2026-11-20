@@ -159,18 +159,138 @@
                 @error('assetId') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-bold text-gray-700 mb-1.5">Borrower *</label>
-                    <input type="text" wire:model="borrower" class="itam-input h-11" required>
+            <!-- Borrower Component (Single Full-Width Searchable Selection) -->
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <label class="block font-bold text-gray-700">Borrower *</label>
                 </div>
-                <div>
-                    <label class="block font-bold text-gray-700 mb-1.5">Purpose</label>
-                    <input type="text" wire:model="purpose" placeholder="e.g. Client presentation, travel" class="itam-input h-11">
+
+                <div x-data="{
+                    open: false,
+                    search: '',
+                    selectedName: @entangle('borrower').live,
+                    employees: {{ json_encode($employeeOptions) }},
+                    get selectedEmployee() {
+                        return this.employees.find(e => e.name === this.selectedName) || null;
+                    },
+                    get filteredEmployees() {
+                        if (!this.search || !this.search.trim()) return this.employees;
+                        const q = this.search.toLowerCase().trim();
+                        return this.employees.filter(e =>
+                            e.name.toLowerCase().includes(q) ||
+                            (e.department && e.department.toLowerCase().includes(q)) ||
+                            (e.email && e.email.toLowerCase().includes(q))
+                        );
+                    },
+                    select(emp) {
+                        this.selectedName = emp.name;
+                        this.open = false;
+                        this.search = '';
+                    },
+                    clear() {
+                        this.selectedName = '';
+                        this.search = '';
+                    }
+                }"
+                @click.outside="open = false"
+                @keydown.escape.window="open = false"
+                class="relative">
+                    <!-- Single Combobox Button / Display -->
+                    <div @click="open = !open; if(open) $nextTick(() => $refs.borrowerSearchInput.focus())"
+                         class="itam-input h-11 flex items-center justify-between cursor-pointer bg-white px-3.5 border border-gray-300 rounded-lg hover:border-[#a92d31] transition">
+                        <div class="flex items-center gap-2 truncate">
+                            <template x-if="selectedName">
+                                <div class="flex items-center gap-2 truncate text-xs">
+                                    <span class="font-semibold text-gray-800 truncate" x-text="selectedName"></span>
+                                    <template x-if="selectedEmployee && selectedEmployee.department">
+                                        <span class="pill normal text-[10px] shrink-0" x-text="selectedEmployee.department"></span>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="!selectedName">
+                                <span class="text-gray-400 text-xs">-- Select Borrower (or search by name/dept) --</span>
+                            </template>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 text-gray-400">
+                            <template x-if="selectedName">
+                                <button type="button" @click.stop="clear()" class="p-1 hover:text-gray-600 rounded text-xs font-bold leading-none" title="Clear selection">
+                                    &times;
+                                </button>
+                            </template>
+                            <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Dropdown Menu with Search and Option List -->
+                    <div x-show="open"
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl p-2 space-y-2">
+                        <!-- Search Input inside dropdown -->
+                        <div class="relative">
+                            <input type="text"
+                                   x-ref="borrowerSearchInput"
+                                   x-model="search"
+                                   @keydown.enter.prevent="if (search.trim()) { select({ name: search.trim(), department: '' }); }"
+                                   placeholder="Type to filter or enter custom borrower name..."
+                                   class="itam-input h-9 text-xs pl-3 pr-7 w-full bg-gray-50 focus:bg-white">
+                            <button type="button" x-show="search && search.length > 0" @click="search = ''" class="absolute right-2.5 top-2 text-gray-400 hover:text-gray-600 text-xs font-bold">
+                                &times;
+                            </button>
+                        </div>
+
+                        <!-- Custom Name option if user types non-matching name -->
+                        <template x-if="search.trim() && !filteredEmployees.some(e => e.name.toLowerCase() === search.toLowerCase().trim())">
+                            <button type="button"
+                                    @click="select({ name: search.trim(), department: '' })"
+                                    class="w-full text-left p-2.5 hover:bg-red-50/50 transition text-xs text-gray-700 italic rounded-md border border-dashed border-gray-200">
+                                <span>Use custom borrower: <strong class="not-italic text-gray-900" x-text="search.trim()"></strong></span>
+                            </button>
+                        </template>
+
+                        <!-- Scrollable Option List -->
+                        <div class="max-h-60 overflow-y-auto divide-y divide-gray-100 rounded-lg">
+                            <template x-for="emp in filteredEmployees" :key="emp.id || emp.name">
+                                <button type="button"
+                                        @click="select(emp)"
+                                        class="w-full text-left p-2.5 hover:bg-red-50/50 transition flex items-center justify-between gap-3 text-xs rounded-md"
+                                        :class="{ 'bg-red-50/70 border-l-2 border-[#a92d31]': selectedName === emp.name }">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold text-gray-900 truncate" x-text="emp.name"></span>
+                                            <span class="text-gray-400 text-[11px]" x-show="emp.email" x-text="'<' + emp.email + '>'"></span>
+                                        </div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5 truncate">
+                                            <span x-show="emp.department" x-text="'Dept: ' + emp.department"></span>
+                                            <span x-show="!emp.department" class="text-gray-400 italic">No department assigned</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <span class="pill normal text-[10px]" x-show="emp.department" x-text="emp.department"></span>
+                                        <span x-show="selectedName === emp.name" class="text-[#a92d31] font-bold text-sm">✓</span>
+                                    </div>
+                                </button>
+                            </template>
+                            <template x-if="filteredEmployees.length === 0">
+                                <div class="py-6 text-center text-xs text-gray-400">
+                                    No matching employees found.
+                                </div>
+                            </template>
+                        </div>
+                    </div>
                 </div>
+                @error('borrower') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Checkout Date, Due Date, and Condition in the same row (3 columns) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block font-bold text-gray-700 mb-1.5">Checkout Date</label>
                     <input type="date" wire:model="checkoutDate" class="itam-input h-11">
@@ -179,9 +299,6 @@
                     <label class="block font-bold text-gray-700 mb-1.5">Due Date *</label>
                     <input type="date" wire:model="dueDate" class="itam-input h-11" required>
                 </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block font-bold text-gray-700 mb-1.5">Condition</label>
                     <select wire:model="condition" class="itam-select h-11">
@@ -189,6 +306,14 @@
                         <option value="New">New</option>
                         <option value="Fair">Fair</option>
                     </select>
+                </div>
+            </div>
+
+            <!-- Purpose & Accessories in the same row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1.5">Purpose</label>
+                    <input type="text" wire:model="purpose" placeholder="e.g. Client presentation, travel" class="itam-input h-11">
                 </div>
                 <div>
                     <label class="block font-bold text-gray-700 mb-1.5">Accessories</label>

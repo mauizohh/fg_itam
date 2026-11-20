@@ -16,7 +16,7 @@ class LoanAsset extends Component
 
     public string $assetSearch = '';
 
-    public string $borrower = 'Aisha Noor';
+    public string $borrower = '';
 
     public string $purpose = 'Client presentation';
 
@@ -32,6 +32,8 @@ class LoanAsset extends Component
 
     public function mount(): void
     {
+        Employee::ensureSynced();
+
         $this->checkoutDate = now()->format('Y-m-d');
         $this->dueDate = now()->addDays(7)->format('Y-m-d');
 
@@ -124,9 +126,25 @@ class LoanAsset extends Component
 
         $assets = $query->orderBy('id')->get();
         $selectedAsset = $this->assetId ? Asset::find($this->assetId) : null;
-        $employees = Employee::where('status', 'Active')->get();
+        $employees = Employee::where('status', 'Active')->orderBy('name')->get();
 
-        return view('livewire.transactions.loan-asset', compact('assets', 'selectedAsset', 'employees'))
+        $employeeOptions = $employees->map(fn ($emp) => [
+            'id' => (string) $emp->id,
+            'name' => $emp->name,
+            'department' => $emp->department ?: '',
+            'email' => $emp->email ?: '',
+        ])->values();
+
+        if ($this->borrower !== '' && ! $employeeOptions->contains('name', $this->borrower)) {
+            $employeeOptions->prepend([
+                'id' => 'custom',
+                'name' => $this->borrower,
+                'department' => '',
+                'email' => '',
+            ]);
+        }
+
+        return view('livewire.transactions.loan-asset', compact('assets', 'selectedAsset', 'employees', 'employeeOptions'))
             ->layout('layouts.app', ['title' => 'Loan Asset', 'breadcrumb' => 'IT Asset Management / Transactions / Loan Asset']);
     }
 }

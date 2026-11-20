@@ -7,20 +7,41 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Employees extends Component
 {
+    use WithPagination;
+
     public string $search = '';
 
     public string $departmentFilter = 'All';
 
     public string $statusFilter = 'Active';
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDepartmentFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         /** @var User $actor */
         $actor = Auth::user();
         abort_unless($actor->hasPermission('people.view'), 403);
+
+        Department::ensureSynced();
+        Employee::ensureSynced();
 
         $query = $actor->scopeDepartmentQuery(Employee::query(), 'department');
 
@@ -39,8 +60,8 @@ class Employees extends Component
             $query->where('status', $this->statusFilter);
         }
 
-        $employees = $query->orderBy('name')->get();
-        $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->get();
+        $employees = $query->orderBy('name')->paginate(15);
+        $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->orderBy('name')->get();
 
         return view('livewire.people.employees', compact('employees', 'departments'))
             ->layout('layouts.app', ['title' => 'Employees', 'breadcrumb' => 'IT Asset Management / People / Employees']);

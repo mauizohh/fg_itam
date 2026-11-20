@@ -5,9 +5,9 @@
         <p class="text-xs text-[#69717d] mt-0.5">Summarize asset ownership, value and accountability by department.</p>
     </div>
 
-    <!-- 4 Department Metric Cards -->
+    <!-- Top Department Metric Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[18px]">
-        @foreach($departments as $dept)
+        @foreach($topDepartments as $dept)
         <x-stat-card
             :title="$dept->name"
             :value="$dept->active_assets_count . ' assets'"

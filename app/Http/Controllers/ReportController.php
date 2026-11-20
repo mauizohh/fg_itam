@@ -30,7 +30,8 @@ class ReportController extends Controller
 
             case 'by-department':
                 $title = 'Assets by Department Report';
-                $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->get();
+                Department::ensureSynced();
+                $departments = $actor->scopeDepartmentQuery(Department::query(), 'name')->orderBy('name')->get();
                 $assetsByDept = $actor->scopeDepartmentQuery(Asset::whereNotNull('department'), 'department')
                     ->get()
                     ->groupBy('department');

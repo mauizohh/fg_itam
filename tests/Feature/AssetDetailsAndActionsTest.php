@@ -8,14 +8,20 @@ use App\Livewire\Assets\AssignedAssets;
 use App\Livewire\Assets\AvailableAssets;
 use App\Livewire\Dashboard;
 use App\Livewire\Maintenance\Warranty;
+use App\Livewire\People\Departments as DepartmentsComponent;
+use App\Livewire\People\Employees as EmployeesComponent;
 use App\Livewire\Transactions\AssignAsset;
 use App\Livewire\Transactions\LoanAsset;
 use App\Livewire\Transactions\ReturnAsset;
 use App\Livewire\Transactions\TransferAsset;
 use App\Models\Asset;
 use App\Models\AuditLog;
+use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\AdmidioDirectoryService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
@@ -698,5 +704,153 @@ class AssetDetailsAndActionsTest extends TestCase
             ->test(ReturnAsset::class)
             ->assertSeeHtml('-- Select Asset to Return (browse list or search) --')
             ->assertSeeHtml('filteredAssets');
+    }
+
+    public function test_departments_and_users_are_sourced_from_admidio_database(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        // Trigger synchronization service
+        $syncService = app(AdmidioDirectoryService::class);
+        $result = $syncService->syncAll();
+
+        $this->assertGreaterThanOrEqual(21, $result['departments']);
+        $this->assertGreaterThan(50, $result['employees']);
+
+        // 1. Assign Asset renders the actual Admidio department list and employee combobox
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->assertSeeHtml('Account Dept')
+            ->assertSeeHtml('Information Technology')
+            ->assertSeeHtml('Human Resources')
+            ->assertSeeHtml('Creative')
+            ->assertSeeHtml('-- Select Employee (or search by name/dept) --');
+
+        // 2. Transfer Asset renders the actual Admidio department list and custodian combobox
+        Livewire::actingAs($admin)
+            ->test(TransferAsset::class)
+            ->assertSeeHtml('Account Dept')
+            ->assertSeeHtml('Information Technology')
+            ->assertSeeHtml('Human Resources')
+            ->assertSeeHtml('Creative')
+            ->assertSeeHtml('-- Select New Custodian (or search by name/dept) --');
+
+        // 3. Employees directory renders actual Admidio employees and Admidio department filter
+        Livewire::actingAs($admin)
+            ->test(EmployeesComponent::class)
+            ->assertSeeHtml('Account Dept')
+            ->assertSeeHtml('Information Technology')
+            ->assertSeeHtml('Human Resources');
+
+        // 4. Departments directory renders actual Admidio department list and their leaders
+        Livewire::actingAs($admin)
+            ->test(DepartmentsComponent::class)
+            ->assertSeeHtml('Account Dept')
+            ->assertSeeHtml('Information Technology')
+            ->assertSeeHtml('Human Resources')
+            ->assertSeeHtml('Creative');
+    }
+
+    public function test_employee_combobox_and_bi_directional_department_linkage(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        // Get an active synced Admidio employee with a department
+        Employee::ensureSynced();
+        $emp = Employee::whereNotNull('department')->where('department', '!=', '')->first();
+        $this->assertNotNull($emp);
+
+        $empName = $emp->name;
+        $empDept = $emp->department;
+        $otherDept = $empDept === 'Creative' ? 'Human Resources' : 'Creative';
+
+        // 1. In AssignAsset, setting assignTo auto-selects department
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->assertSet('department', '')
+            ->assertSeeHtml('-- All Departments --')
+            ->set('assignTo', $empName)
+            ->assertSet('department', $empDept);
+
+        // 2. In AssignAsset, changing department to a mismatch clears assignTo
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->set('assignTo', $empName)
+            ->assertSet('department', $empDept)
+            ->set('department', $otherDept)
+            ->assertSet('assignTo', '');
+
+        // 3. In TransferAsset, setting transferTo auto-selects newDepartment
+        Livewire::actingAs($admin)
+            ->test(TransferAsset::class)
+            ->set('newDepartment', '')
+            ->assertSeeHtml('-- All Departments --')
+            ->set('transferTo', $empName)
+            ->assertSet('newDepartment', $empDept);
+
+        // 4. In LoanAsset and ReturnAsset, the custom employee comboboxes render
+        Livewire::actingAs($admin)
+            ->test(LoanAsset::class)
+            ->assertSeeHtml('-- Select Borrower (or search by name/dept) --');
+
+        Livewire::actingAs($admin)
+            ->test(ReturnAsset::class)
+            ->assertSeeHtml('-- Select Returnee (or search by name/dept) --');
+    }
+
+    public function test_assign_asset_expected_return_defaults_to_not_required_and_allows_reset_or_date(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $asset = Asset::updateOrCreate(
+            ['id' => 'IT-LAP-2026-99077'],
+            [
+                'asset_tag' => 'TAG-LAP-99077',
+                'name' => 'Expected Return Test Laptop',
+                'category_id' => 'LAP',
+                'category_name' => 'Laptop',
+                'brand' => 'Dell',
+                'model' => 'Latitude 5540',
+                'serial_number' => 'SN-DELL-99077',
+                'status' => 'Available',
+                'assigned_location' => 'Jitra Office',
+                'purchase_date' => '2026-05-20',
+            ]
+        );
+
+        // 1. Expected return defaults to 'Not required'
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->set('assetId', $asset->id)
+            ->assertSet('expectedReturn', 'Not required')
+            ->assertSeeHtml('Not required')
+            ->assertSeeHtml('title="Reset date to Not required"');
+
+        // 2. Setting a date stores expected_return_date on the asset
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->set('assetId', $asset->id)
+            ->set('department', 'Information Technology')
+            ->set('location', 'Jitra Office')
+            ->set('expectedReturn', '2026-12-31')
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        $fresh = $asset->fresh();
+        $this->assertEquals('2026-12-31', $fresh->expected_return_date ? Carbon::parse($fresh->expected_return_date)->format('Y-m-d') : null);
+
+        // 3. Resetting to 'Not required' sets expected_return_date to null
+        $asset->update(['status' => 'Available']);
+        Livewire::actingAs($admin)
+            ->test(AssignAsset::class)
+            ->set('assetId', $asset->id)
+            ->set('department', 'Information Technology')
+            ->set('location', 'Jitra Office')
+            ->set('expectedReturn', 'Not required')
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        $fresh = $asset->fresh();
+        $this->assertNull($fresh->expected_return_date);
     }
 }

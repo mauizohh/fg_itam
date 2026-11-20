@@ -36,7 +36,7 @@
     <!-- Employee Directory Table -->
     <x-table-section title="Employee Directory">
         <x-slot:badge>
-            <strong class="text-primary-600">{{ count($employees) }}</strong> staff members
+            <strong class="text-primary-600">{{ $employees->total() }}</strong> staff members
         </x-slot:badge>
 
         <table class="w-full text-left itam-table">
@@ -71,5 +71,11 @@
                 @endforeach
             </tbody>
         </table>
+
+        @if($employees->hasPages())
+            <div class="px-6 py-4 border-t border-gray-100">
+                {{ $employees->links() }}
+            </div>
+        @endif
     </x-table-section>
 </div>

@@ -28,6 +28,8 @@ class EmployeeDetail extends Component
         $actor = Auth::user();
         abort_unless($actor->hasPermission('people.view'), 403);
 
+        Employee::ensureSynced();
+
         $employee = Employee::find($this->employeeId);
         if ($actor->isDepartmentScoped()) {
             abort_if($employee === null, 404);
