@@ -446,22 +446,42 @@
                 <textarea wire:model="remarks" rows="3" class="itam-input py-2.5"></textarea>
             </div>
 
-            <!-- Inspection Checklist (Pass / Fail Pills) matching UI 10 -->
+            <!-- Inspection Checklist matching UI 10 -->
             <div class="pt-4 border-t border-gray-100">
-                <span class="block font-heading font-bold text-gray-700 mb-3">Return Inspection Checklist</span>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="block font-heading font-bold text-gray-700">Return Inspection Checklist</span>
+                    <span class="text-[11px] text-gray-500 font-medium">Tick items as actions are completed</span>
+                </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50/50">
-                        <span class="font-semibold text-gray-700">Device powers on</span>
-                        <span class="pill low">PASS</span>
-                    </div>
-                    <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50/50">
-                        <span class="font-semibold text-gray-700">Charger returned</span>
-                        <span class="pill low">PASS</span>
-                    </div>
-                    <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50/50">
-                        <span class="font-semibold text-gray-700">Data handling completed</span>
-                        <span class="pill low">PASS</span>
-                    </div>
+                    <label class="flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none {{ $checkPowerOn ? 'border-emerald-300 bg-emerald-50/40 shadow-xs' : 'border-gray-200 bg-gray-50/50 hover:bg-white hover:border-gray-300' }}">
+                        <span class="font-semibold text-xs {{ $checkPowerOn ? 'text-emerald-950 font-bold' : 'text-gray-700' }}">Device powers on</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-bold transition {{ $checkPowerOn ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-50' }}">
+                            <input type="checkbox"
+                                   wire:model.live="checkPowerOn"
+                                   class="w-3.5 h-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            <span>{{ $checkPowerOn ? 'Pass' : 'Tick' }}</span>
+                        </span>
+                    </label>
+
+                    <label class="flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none {{ $checkCharger ? 'border-emerald-300 bg-emerald-50/40 shadow-xs' : 'border-gray-200 bg-gray-50/50 hover:bg-white hover:border-gray-300' }}">
+                        <span class="font-semibold text-xs {{ $checkCharger ? 'text-emerald-950 font-bold' : 'text-gray-700' }}">Charger returned</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-bold transition {{ $checkCharger ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-50' }}">
+                            <input type="checkbox"
+                                   wire:model.live="checkCharger"
+                                   class="w-3.5 h-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            <span>{{ $checkCharger ? 'Pass' : 'Tick' }}</span>
+                        </span>
+                    </label>
+
+                    <label class="flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none {{ $checkDataHandling ? 'border-emerald-300 bg-emerald-50/40 shadow-xs' : 'border-gray-200 bg-gray-50/50 hover:bg-white hover:border-gray-300' }}">
+                        <span class="font-semibold text-xs {{ $checkDataHandling ? 'text-emerald-950 font-bold' : 'text-gray-700' }}">Data handling completed</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-bold transition {{ $checkDataHandling ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-50' }}">
+                            <input type="checkbox"
+                                   wire:model.live="checkDataHandling"
+                                   class="w-3.5 h-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            <span>{{ $checkDataHandling ? 'Pass' : 'Tick' }}</span>
+                        </span>
+                    </label>
                 </div>
             </div>
 

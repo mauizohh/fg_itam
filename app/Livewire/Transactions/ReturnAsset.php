@@ -36,11 +36,11 @@ class ReturnAsset extends Component
 
     public string $remarks = 'Device passed visual inspection';
 
-    public bool $checkPowerOn = true;
+    public bool $checkPowerOn = false;
 
-    public bool $checkCharger = true;
+    public bool $checkCharger = false;
 
-    public bool $checkDataHandling = true;
+    public bool $checkDataHandling = false;
 
     public function mount(?string $asset_id = null, ?string $employee = null, ?string $mode = null): void
     {

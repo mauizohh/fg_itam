@@ -61,15 +61,7 @@
                                 {{ $tx->transaction_date ?? $tx->checkout_date ?? $tx->return_date ?? substr((string) $tx->created_at, 0, 10) }}
                             </td>
                             <td>
-                                @php
-                                    $pill = match ($tx->type) {
-                                        'Assign' => 'pill assigned',
-                                        'Loan' => 'pill loan',
-                                        'Return' => 'pill available',
-                                        default => 'pill normal',
-                                    };
-                                @endphp
-                                <span class="{{ $pill }}">{{ $tx->type }}</span>
+                                <span class="{{ \App\Models\Transaction::typePillClass($tx->type) }}">{{ $tx->type }}</span>
                             </td>
                             <td>
                                 @if (auth()->user()?->hasPermission('assets.view'))

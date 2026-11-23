@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Software;
 
+use App\Models\Asset;
+use App\Models\License;
 use App\Models\Software;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +19,12 @@ class SoftwareCatalog extends Component
 
     public bool $showModal = false;
 
+    public bool $showDeviceModal = false;
+
+    public ?string $selectedSoftwareTitle = null;
+
+    public string $deviceSearch = '';
+
     public string $name = '';
 
     public string $vendor = '';
@@ -26,6 +34,20 @@ class SoftwareCatalog extends Component
     public int $managedDevices = 0;
 
     public string $ownerDepartment = 'IT Operations';
+
+    public function openDeviceModal(string $softwareTitle): void
+    {
+        $this->selectedSoftwareTitle = $softwareTitle;
+        $this->deviceSearch = '';
+        $this->showDeviceModal = true;
+    }
+
+    public function closeDeviceModal(): void
+    {
+        $this->showDeviceModal = false;
+        $this->selectedSoftwareTitle = null;
+        $this->deviceSearch = '';
+    }
 
     public function addSoftware()
     {
@@ -71,7 +93,30 @@ class SoftwareCatalog extends Component
 
         $software = $query->orderBy('name')->get();
 
-        return view('livewire.software.software-catalog', compact('software'))
+        $deviceAssets = collect();
+        if ($this->selectedSoftwareTitle) {
+            $license = License::where('software_name', $this->selectedSoftwareTitle)->first();
+            if ($license) {
+                $allAssets = $license->getAssignedAssets();
+            } else {
+                $allAssets = Asset::whereIn('category_id', ['LAP', 'DSK'])->take(4)->get();
+            }
+
+            if (! empty(trim($this->deviceSearch))) {
+                $q = strtolower(trim($this->deviceSearch));
+                $deviceAssets = $allAssets->filter(function ($a) use ($q) {
+                    return str_contains(strtolower($a->id), $q)
+                        || str_contains(strtolower($a->name), $q)
+                        || str_contains(strtolower($a->assigned_user ?? ''), $q)
+                        || str_contains(strtolower($a->department ?? ''), $q)
+                        || str_contains(strtolower($a->assigned_location ?? ''), $q);
+                })->values();
+            } else {
+                $deviceAssets = $allAssets;
+            }
+        }
+
+        return view('livewire.software.software-catalog', compact('software', 'deviceAssets'))
             ->layout('layouts.app', ['title' => 'Software Catalog', 'breadcrumb' => 'IT Asset Management / Software']);
     }
 }

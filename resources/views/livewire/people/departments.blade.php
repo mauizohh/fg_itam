@@ -22,22 +22,20 @@
             <thead>
                 <tr>
                     <th>Department</th>
-                    <th>Owner</th>
-                    <th>Active Assets</th>
-                    <th>Available</th>
-                    <th>Repair</th>
-                    <th>Missing</th>
+                    <th class="text-center">Active Assets</th>
+                    <th class="text-center">Available</th>
+                    <th class="text-center">Repair</th>
+                    <th class="text-center">Missing</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($departments as $dept)
                 <tr>
                     <td class="font-bold text-gray-900">{{ $dept->name }}</td>
-                    <td class="font-semibold text-gray-700">{{ $dept->owner_title }}</td>
-                    <td class="font-bold font-heading text-gray-800">{{ $dept->active_assets_count }}</td>
-                    <td class="text-emerald-700 font-semibold">{{ $dept->available_count }}</td>
-                    <td class="text-amber-700 font-semibold">{{ $dept->repair_count }}</td>
-                    <td class="{{ $dept->missing_count > 0 ? 'text-red-600 font-bold' : 'text-gray-500' }}">{{ $dept->missing_count }}</td>
+                    <td class="text-center font-bold font-heading text-gray-800">{{ $dept->active_assets_count }}</td>
+                    <td class="text-center text-emerald-700 font-semibold">{{ $dept->available_count }}</td>
+                    <td class="text-center text-amber-700 font-semibold">{{ $dept->repair_count }}</td>
+                    <td class="text-center {{ $dept->missing_count > 0 ? 'text-red-600 font-bold' : 'text-gray-500' }}">{{ $dept->missing_count }}</td>
                 </tr>
                 @endforeach
             </tbody>

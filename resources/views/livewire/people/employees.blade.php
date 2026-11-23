@@ -45,8 +45,8 @@
                     <th>Employee</th>
                     <th>Department</th>
                     <th>Location</th>
-                    <th>Assigned Assets</th>
-                    <th>Pending Returns</th>
+                    <th class="text-center">Assigned Assets</th>
+                    <th class="text-center">Pending Returns</th>
                     <th class="text-center">Action</th>
                 </tr>
             </thead>
@@ -56,8 +56,8 @@
                     <td class="table-primary-text">{{ $emp->name }}</td>
                     <td>{{ $emp->department }}</td>
                     <td>{{ $emp->location }}</td>
-                    <td class="font-bold text-gray-800">{{ $emp->assigned_assets_count }}</td>
-                    <td>
+                    <td class="text-center font-bold text-gray-800">{{ $emp->assigned_assets_count }}</td>
+                    <td class="text-center">
                         <span class="{{ $emp->pending_returns_count > 0 ? 'text-amber-600 font-bold' : 'text-gray-500' }}">
                             {{ $emp->pending_returns_count }}
                         </span>
