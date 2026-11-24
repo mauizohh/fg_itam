@@ -1,4 +1,19 @@
-# Laravel runtime storage
+# Dependencies
+/node_modules
+/vendor
+
+# Environment & Secrets
+.env
+.env.backup
+.env.production
+.env.*.local
+
+# Compiled Assets & Build Artifacts
+/public/build
+/public/hot
+/public/storage
+
+# Laravel Runtime Storage
 /storage/*.key
 /storage/app/*
 !/storage/app/public/
@@ -16,13 +31,46 @@
 /storage/logs/*
 !/storage/logs/.gitkeep
 
-# Local / generated files
+# Framework & Bootstrap Caches
 /.phpunit.cache
 /.phpunit.result.cache
 /bootstrap/cache/*.php
-/public/hot
-/public/storage
-.env.backup
-.env.production
-npm-debug.log
-yarn-error.log
+!/bootstrap/cache/.gitignore
+
+# Local Databases & Backups
+database/*.sqlite
+database/*.sqlite-journal
+*.sql
+
+# Logs & Package Manager Artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Composer
+composer.phar
+auth.json
+
+# IDEs & Code Editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
