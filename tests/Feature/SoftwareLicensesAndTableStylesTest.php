@@ -95,7 +95,7 @@ class SoftwareLicensesAndTableStylesTest extends TestCase
             ->assertSet('checkPowerOn', true);
     }
 
-    public function test_transaction_ledger_standardized_type_pills(): void
+    public function test_transaction_ledger_type_column_uses_normal_entry_style_without_pills(): void
     {
         $admin = $this->loadUserByLogin('test.sysadmin');
 
@@ -120,14 +120,12 @@ class SoftwareLicensesAndTableStylesTest extends TestCase
         $response = $this->actingAs($admin)->get(route('transactions.history'));
         $response->assertOk();
 
-        // Both Transfer and Assign should be rendered in pill normal badges
-        $this->assertEquals('pill normal', Transaction::typePillClass('Assign'));
-        $this->assertEquals('pill normal', Transaction::typePillClass('Transfer'));
-        $this->assertEquals('pill low', Transaction::typePillClass('Return'));
-        $this->assertEquals('pill high', Transaction::typePillClass('Loan'));
-
-        $response->assertSee('<span class="pill normal">Assign</span>', false);
-        $response->assertSee('<span class="pill normal">Transfer</span>', false);
+        // Both Transfer and Assign should be rendered in normal text entry style without pills
+        $response->assertSee('<td class="text-xs font-semibold text-gray-800">', false);
+        $response->assertSee('Transfer');
+        $response->assertSee('Assign');
+        $response->assertDontSee('<span class="pill normal">Assign</span>', false);
+        $response->assertDontSee('<span class="pill normal">Transfer</span>', false);
     }
 
     public function test_software_licenses_allows_viewing_assigned_asset_id_with_clickable_link(): void

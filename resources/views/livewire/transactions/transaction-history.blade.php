@@ -60,8 +60,8 @@
                             <td class="text-xs font-mono text-gray-500">
                                 {{ $tx->transaction_date ?? $tx->checkout_date ?? $tx->return_date ?? substr((string) $tx->created_at, 0, 10) }}
                             </td>
-                            <td>
-                                <span class="{{ \App\Models\Transaction::typePillClass($tx->type) }}">{{ $tx->type }}</span>
+                            <td class="text-xs font-semibold text-gray-800">
+                                {{ $tx->type }}
                             </td>
                             <td>
                                 @if (auth()->user()?->hasPermission('assets.view'))
