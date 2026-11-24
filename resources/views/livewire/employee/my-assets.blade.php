@@ -50,8 +50,8 @@
                         <th>Serial No.</th>
                         <th>Status</th>
                         <th>Location</th>
-                        <th>Return Obligation</th>
-                        <th>Acknowledgement</th>
+                        <th>Return</th>
+                        <th class="text-center">Acknowledgement</th>
                         <th class="text-right">Action</th>
                     </tr>
                 </thead>
@@ -81,33 +81,29 @@
                                 <span class="{{ $pillClass }}">{{ $asset->status }}</span>
                             </td>
                             <td class="text-xs text-gray-600">{{ $asset->assigned_location ?: 'Jitra Office' }}</td>
-                            <td class="text-xs">
+                            <td class="text-xs text-gray-600">
                                 @if ($asset->expected_return_date)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-medium">
-                                        Due {{ $asset->expected_return_date }}
-                                    </span>
+                                    {{ $asset->expected_return_date }}
                                 @elseif ($asset->status === 'Loan')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 font-medium">
-                                        Temporary Loan Return Required
-                                    </span>
+                                    Temporary Loan Return Required
                                 @else
-                                    <span class="text-gray-500">Return upon offboarding / role transfer</span>
+                                    Return upon offboarding / role transfer
                                 @endif
                             </td>
-                            <td>
+                            <td class="text-center">
                                 @if ($ack)
-                                    <div class="flex items-center gap-2" title="Acknowledged on {{ $ack->acknowledged_at?->format('Y-m-d H:i') }}">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 shadow-2xs shrink-0" title="Acknowledged">
-                                            <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="flex flex-col items-center justify-center gap-1" title="Acknowledged on {{ $ack->acknowledged_at?->format('Y-m-d H:i') }}">
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 shadow-2xs shrink-0" title="Acknowledged">
+                                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                                             </svg>
                                         </span>
-                                        <span class="text-[11px] text-gray-600 font-mono">{{ $ack->acknowledged_at?->format('Y-m-d H:i') }}</span>
+                                        <span class="text-[11px] text-gray-600 font-mono whitespace-nowrap">{{ $ack->acknowledged_at?->format('Y-m-d H:i') }}</span>
                                     </div>
                                 @else
-                                    <div class="flex items-center gap-2" title="Pending Receipt Acknowledgement">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-700 shadow-2xs shrink-0" title="Not Acknowledged">
-                                            <svg class="w-4 h-4 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="flex flex-col items-center justify-center gap-1" title="Pending Receipt Acknowledgement">
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-700 shadow-2xs shrink-0" title="Not Acknowledged">
+                                            <svg class="w-3.5 h-3.5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         </span>

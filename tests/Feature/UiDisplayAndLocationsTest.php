@@ -72,7 +72,10 @@ class UiDisplayAndLocationsTest extends TestCase
             ->test(MyAssets::class)
             ->assertDontSee('Signed in as')
             ->assertSee('IT-LAP-2026-00803')
-            ->assertDontSee('(Test Staff)');
+            ->assertDontSee('(Test Staff)')
+            ->assertSee('<th class="text-center">Acknowledgement</th>', false)
+            ->assertSee('flex flex-col items-center justify-center gap-1', false)
+            ->assertDontSee('bg-amber-50', false);
     }
 
     public function test_location_options_only_allow_jitra_office_and_kulim_office(): void
@@ -146,5 +149,16 @@ class UiDisplayAndLocationsTest extends TestCase
             ->assertSee('Kulim Office')
             ->assertDontSee('Kuala Lumpur Office')
             ->assertDontSee('Penang Office');
+    }
+
+    public function test_dashboard_does_not_display_add_asset_and_audit_scan_buttons(): void
+    {
+        $admin = $this->loadUserByLogin('test.sysadmin');
+
+        $this->actingAs($admin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('Add Asset')
+            ->assertDontSee('Audit Scan');
     }
 }

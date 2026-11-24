@@ -17,15 +17,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="min-h-screen bg-[#f9fafb] text-[#3b4048] antialiased font-sans selection:bg-[#a92d31] selection:text-white flex flex-col justify-between">
-    <main class="flex-1 flex items-center justify-center px-4 py-10">
-        {{ $slot }}
-    </main>
-
-    <footer class="py-4 text-center text-xs text-gray-500">
-        &copy; {{ date('Y') }} First Grade Resources &mdash; FG IT Asset Management System
-    </footer>
-
+<body class="antialiased font-sans selection:bg-[#a92d31] selection:text-white">
+    {{ $slot }}
     @livewireScripts
 </body>
 </html>
